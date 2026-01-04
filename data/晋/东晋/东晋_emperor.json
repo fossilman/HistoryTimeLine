@@ -1,0 +1,102 @@
+[
+    {
+        "name": "司马睿",
+        "era_name": "建武／大兴／永昌",
+        "temple_name": "晋元帝",
+        "life_span_start_time": "276-05-27",
+        "life_span_end_time": "323-01-03",
+        "reign_start_time": "318-04-26",
+        "reign_end_time": "323-01-03",
+        "relatedPolities": "东晋"
+    },
+    {
+        "name": "司马绍",
+        "era_name": "太宁",
+        "temple_name": "晋肃宗",
+        "life_span_start_time": "299-01-01",
+        "life_span_end_time": "325-10-18",
+        "reign_start_time": "323-01-03",
+        "reign_end_time": "325-10-18",
+        "relatedPolities": "东晋"
+    },
+    {
+        "name": "司马衍",
+        "era_name": "咸和／咸康",
+        "temple_name": "晋成帝",
+        "life_span_start_time": "321-01-01",
+        "life_span_end_time": "342-07-26",
+        "reign_start_time": "325-10-18",
+        "reign_end_time": "342-07-26",
+        "relatedPolities": "东晋"
+    },
+    {
+        "name": "司马岳",
+        "era_name": "建元",
+        "temple_name": "晋康帝",
+        "life_span_start_time": "322-01-01",
+        "life_span_end_time": "344-11-17",
+        "reign_start_time": "342-07-26",
+        "reign_end_time": "344-11-17",
+        "relatedPolities": "东晋"
+    },
+    {
+        "name": "司马聃",
+        "era_name": "永和／升平",
+        "temple_name": "晋穆帝",
+        "life_span_start_time": "343-01-01",
+        "life_span_end_time": "361-07-10",
+        "reign_start_time": "344-11-17",
+        "reign_end_time": "361-07-10",
+        "relatedPolities": "东晋"
+    },
+    {
+        "name": "司马丕",
+        "era_name": "隆和／兴宁",
+        "temple_name": "晋哀帝",
+        "life_span_start_time": "341-01-01",
+        "life_span_end_time": "365-11-23",
+        "reign_start_time": "361-07-10",
+        "reign_end_time": "365-01-31",
+        "relatedPolities": "东晋"
+    },
+    {
+        "name": "司马奕",
+        "era_name": "太和",
+        "temple_name": null,
+        "life_span_start_time": "342-01-01",
+        "life_span_end_time": "386-11-23",
+        "reign_start_time": "365-03-31",
+        "reign_end_time": "372-01-06",
+        "relatedPolities": "东晋"
+    },
+    {
+        "name": "司马昱",
+        "era_name": "咸安",
+        "temple_name": "晋简文帝",
+        "life_span_start_time": "320-01-01",
+        "life_span_end_time": "372-09-12",
+        "reign_start_time": "372-01-06",
+        "reign_end_time": "372-09-12",
+        "relatedPolities": "东晋"
+    },
+    {
+        "name": "司马曜",
+        "era_name": "宁康／太元",
+        "temple_name": "晋孝武帝",
+        "life_span_start_time": "362-01-01",
+        "life_span_end_time": "396-11-06",
+        "reign_start_time": "372-09-12",
+        "reign_end_time": "396-11-06",
+        "relatedPolities": "东晋"
+    },
+    {
+        "name": "司马德宗（司马德文）",
+        "era_name": "元熙",
+        "temple_name": "晋恭帝",
+        "life_span_start_time": "386-01-01",
+        "life_span_end_time": "421-10-01",
+        "reign_start_time": "419-01-28",
+        "reign_end_time": "420-07-07",
+        "relatedPolities": "东晋"
+    }
+]

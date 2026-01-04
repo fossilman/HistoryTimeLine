@@ -1,0 +1,32 @@
+[
+    {
+        "name": "杨坚",
+        "era_name": "开皇／仁寿",
+        "temple_name": "文帝",
+        "life_span_start_time": "541-07-21",
+        "life_span_end_time": "604-08-13",
+        "reign_start_time": "581-03-04",
+        "reign_end_time": "604-08-13",
+        "relatedPolities": "隋朝"
+    },
+    {
+        "name": "杨广",
+        "era_name": "大业",
+        "temple_name": "炀帝",
+        "life_span_start_time": "569-04-03",
+        "life_span_end_time": "618-04-11",
+        "reign_start_time": "604-08-21",
+        "reign_end_time": "618-04-11",
+        "relatedPolities": "隋朝"
+    },
+    {
+        "name": "杨侑",
+        "era_name": "义宁",
+        "temple_name": "恭帝",
+        "life_span_start_time": "605-01-01",
+        "life_span_end_time": "619-05-14",
+        "reign_start_time": "617-11-11",
+        "reign_end_time": "618-06-16",
+        "relatedPolities": "隋朝"
+    }
+]

@@ -1,0 +1,132 @@
+[
+    {
+        "name": "刘秀",
+        "era_name": "建武／建武中元",
+        "temple_name": "世祖",
+        "life_span_start_time": "-0006-01-01",
+        "life_span_end_time": "057-01-01",
+        "reign_start_time": "025-08-05",
+        "reign_end_time": "057-03-29",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘庄",
+        "era_name": "永平",
+        "temple_name": "显宗",
+        "life_span_start_time": "028-06-15",
+        "life_span_end_time": "075-09-05",
+        "reign_start_time": "057-03-29",
+        "reign_end_time": "075-09-05",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘炟",
+        "era_name": "建初／元和／章和",
+        "temple_name": "肃宗",
+        "life_span_start_time": "057-01-01",
+        "life_span_end_time": "088-04-09",
+        "reign_start_time": "075-09-05",
+        "reign_end_time": "088-04-09",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘肇",
+        "era_name": "永元／元兴",
+        "temple_name": "穆宗",
+        "life_span_start_time": "079-01-01",
+        "life_span_end_time": "106-02-13",
+        "reign_start_time": "088-04-09",
+        "reign_end_time": "106-02-13",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘隆",
+        "era_name": "延平",
+        "temple_name": "孝殇皇帝",
+        "life_span_start_time": "106-02-13",
+        "life_span_end_time": "106-09-21",
+        "reign_start_time": "106-02-13",
+        "reign_end_time": "106-09-21",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘祜",
+        "era_name": "永初／永宁／建光／延光",
+        "temple_name": "恭宗",
+        "life_span_start_time": "094-01-01",
+        "life_span_end_time": "125-04-30",
+        "reign_start_time": "107-06-06",
+        "reign_end_time": "125-04-30",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘保",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "",
+        "life_span_end_time": "",
+        "reign_start_time": "125-04-30",
+        "reign_end_time": "144-10-13",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘炳",
+        "era_name": "延平",
+        "temple_name": "孝殇皇帝",
+        "life_span_start_time": "144-01-01",
+        "life_span_end_time": "145-10-13",
+        "reign_start_time": "144-10-13",
+        "reign_end_time": "145-10-13",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘纘",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "",
+        "life_span_end_time": "",
+        "reign_start_time": "145-10-13",
+        "reign_end_time": "146-10-13",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘志",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "",
+        "life_span_end_time": "",
+        "reign_start_time": "146-10-13",
+        "reign_end_time": "168-03-15",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘宏",
+        "era_name": "建宁／熹平／光和／中平",
+        "temple_name": "孝灵皇帝",
+        "life_span_start_time": "156-01-01",
+        "life_span_end_time": "189-05-13",
+        "reign_start_time": "168-03-17",
+        "reign_end_time": "189-05-13",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘辩",
+        "era_name": "光熹／昭宁",
+        "temple_name": "",
+        "life_span_start_time": "176-01-01",
+        "life_span_end_time": "190-03-26",
+        "reign_start_time": "189-05-13",
+        "reign_end_time": "189-09-28",
+        "relatedPolities": "东汉"
+    },
+    {
+        "name": "刘协",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "181-04-02",
+        "life_span_end_time": "234-04-21",
+        "reign_start_time": "189-09-28",
+        "reign_end_time": "220-12-11",
+        "relatedPolities": "东汉"
+    }
+]

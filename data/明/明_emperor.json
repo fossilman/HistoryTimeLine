@@ -1,0 +1,172 @@
+[
+    {
+        "name": "朱元璋",
+        "era_name": "洪武",
+        "temple_name": "太祖",
+        "life_span_start_time": "1328-10-21",
+        "life_span_end_time": "1398-06-24",
+        "reign_start_time": "1368-01-23",
+        "reign_end_time": "1398-06-24",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱允炆",
+        "era_name": "建文",
+        "temple_name": "",
+        "life_span_start_time": "1377-12-05",
+        "life_span_end_time": "1402-07-13",
+        "reign_start_time": "1398-06-30",
+        "reign_end_time": "1402-07-13",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱棣",
+        "era_name": "永樂",
+        "temple_name": "成祖",
+        "life_span_start_time": "1360-05-02",
+        "life_span_end_time": "1424-08-12",
+        "reign_start_time": "1402-07-17",
+        "reign_end_time": "1424-08-12",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱高熾",
+        "era_name": "洪熙",
+        "temple_name": "仁宗",
+        "life_span_start_time": "1378-01-01",
+        "life_span_end_time": "1425-10-29",
+        "reign_start_time": "1424-08-19",
+        "reign_end_time": "1425-10-29",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱瞻基",
+        "era_name": "宣德",
+        "temple_name": "宣宗",
+        "life_span_start_time": "1398-01-01",
+        "life_span_end_time": "1435-01-01",
+        "reign_start_time": "1425-09-05",
+        "reign_end_time": "1435-01-01",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱祁鎮",
+        "era_name": "正統 / 天順",
+        "temple_name": "英宗",
+        "life_span_start_time": "1427-01-01",
+        "life_span_end_time": "1464-01-01",
+        "reign_start_time": "1435-10-01",
+        "reign_end_time": "1449-09-01",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱祁鈺",
+        "era_name": "景泰",
+        "temple_name": "代宗",
+        "life_span_start_time": "1428-01-01",
+        "life_span_end_time": "1457-01-01",
+        "reign_start_time": "1449-09-01",
+        "reign_end_time": "1457-01-01",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱祁鎮",
+        "era_name": "天順",
+        "temple_name": "英宗",
+        "life_span_start_time": "1427-01-01",
+        "life_span_end_time": "1464-01-01",
+        "reign_start_time": "1457-01-01",
+        "reign_end_time": "1464-01-01",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱見深",
+        "era_name": "成化",
+        "temple_name": "憲宗",
+        "life_span_start_time": "1447-02-23",
+        "life_span_end_time": "1487-09-09",
+        "reign_start_time": "1464-02-23",
+        "reign_end_time": "1487-09-09",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱祐樘",
+        "era_name": "弘治",
+        "temple_name": "孝宗",
+        "life_span_start_time": "1470-07-30",
+        "life_span_end_time": "1505-06-09",
+        "reign_start_time": "1487-09-09",
+        "reign_end_time": "1505-06-09",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱厚照",
+        "era_name": "正德",
+        "temple_name": "武宗",
+        "life_span_start_time": "1491-08-05",
+        "life_span_end_time": "1521-04-20",
+        "reign_start_time": "1505-06-09",
+        "reign_end_time": "1521-04-20",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱厚熜",
+        "era_name": "嘉靖",
+        "temple_name": "世宗",
+        "life_span_start_time": "1507-09-16",
+        "life_span_end_time": "1567-01-23",
+        "reign_start_time": "1521-08-28",
+        "reign_end_time": "1567-01-23",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱載垕",
+        "era_name": "隆慶",
+        "temple_name": "穆宗",
+        "life_span_start_time": "1537-01-01",
+        "life_span_end_time": "1572-06-05",
+        "reign_start_time": "1567-02-20",
+        "reign_end_time": "1572-06-05",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱翊鈞",
+        "era_name": "萬曆",
+        "temple_name": "神宗",
+        "life_span_start_time": "1563-08-04",
+        "life_span_end_time": "1620-08-18",
+        "reign_start_time": "1572-07-19",
+        "reign_end_time": "1620-08-18",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱常洛",
+        "era_name": "泰昌",
+        "temple_name": "光宗",
+        "life_span_start_time": "1582-01-01",
+        "life_span_end_time": "1620-10-26",
+        "reign_start_time": "1620-08-28",
+        "reign_end_time": "1620-10-26",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱由校",
+        "era_name": "天啟",
+        "temple_name": "熹宗",
+        "life_span_start_time": "1605-01-01",
+        "life_span_end_time": "1627-09-27",
+        "reign_start_time": "1620-10-26",
+        "reign_end_time": "1627-09-27",
+        "relatedPolities": "明朝"
+    },
+    {
+        "name": "朱由檢",
+        "era_name": "崇禎",
+        "temple_name": "思宗",
+        "life_span_start_time": "1611-02-06",
+        "life_span_end_time": "1644-04-25",
+        "reign_start_time": "1627-10-02",
+        "reign_end_time": "1644-04-25",
+        "relatedPolities": "明朝"
+    }
+]

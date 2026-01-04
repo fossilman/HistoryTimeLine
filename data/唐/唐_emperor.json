@@ -1,0 +1,222 @@
+[
+    {
+        "name": "李渊",
+        "era_name": "武德",
+        "temple_name": "高祖",
+        "life_span_start_time": "566-04-07",
+        "life_span_end_time": "635-06-25",
+        "reign_start_time": "618-06-18",
+        "reign_end_time": "626-09-04",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李世民",
+        "era_name": "贞观",
+        "temple_name": "太宗",
+        "life_span_start_time": "598-01-28",
+        "life_span_end_time": "649-07-10",
+        "reign_start_time": "626-09-04",
+        "reign_end_time": "649-07-10",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李治",
+        "era_name": "永徽／显庆／龙朔／麟德／乾封／总章／咸亨／上元／仪凤／调露／永隆／开耀／永淳／弘道",
+        "temple_name": "高宗",
+        "life_span_start_time": "628-07-21",
+        "life_span_end_time": "683-12-27",
+        "reign_start_time": "649-07-15",
+        "reign_end_time": "683-12-27",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李显",
+        "era_name": "嗣圣／神龙／景龙",
+        "temple_name": "中宗",
+        "life_span_start_time": "656-11-26",
+        "life_span_end_time": "710-07-03",
+        "reign_start_time": "684-01-03",
+        "reign_end_time": "684-02-26",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李旦",
+        "era_name": "文明／景云／太极／延和",
+        "temple_name": "睿宗",
+        "life_span_start_time": "662-06-22",
+        "life_span_end_time": "716-07-13",
+        "reign_start_time": "684-02-27",
+        "reign_end_time": "690-10-16",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "武则天",
+        "era_name": "光宅／垂拱／永昌／载初／天授／如意／长寿／延载／证圣／天册万岁",
+        "temple_name": "（无庙号，称则天大圣皇帝）",
+        "life_span_start_time": "624-02-17",
+        "life_span_end_time": "705-12-16",
+        "reign_start_time": "690-10-16",
+        "reign_end_time": "705-02-22",
+        "relatedPolities": "武周（唐朝时期）"
+    },
+    {
+        "name": "李显",
+        "era_name": "神龙／景龙",
+        "temple_name": "中宗",
+        "life_span_start_time": "656-11-26",
+        "life_span_end_time": "710-07-03",
+        "reign_start_time": "705-02-23",
+        "reign_end_time": "710-07-03",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李隆基",
+        "era_name": "先天／开元／天宝",
+        "temple_name": "玄宗",
+        "life_span_start_time": "685-09-08",
+        "life_span_end_time": "762-05-03",
+        "reign_start_time": "712-09-08",
+        "reign_end_time": "756-08-12",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李亨",
+        "era_name": "至德／乾元／上元",
+        "temple_name": "肃宗",
+        "life_span_start_time": "711-02-21",
+        "life_span_end_time": "762-05-16",
+        "reign_start_time": "756-08-12",
+        "reign_end_time": "762-05-16",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李豫",
+        "era_name": "宝应／广德／永泰／大历",
+        "temple_name": "代宗",
+        "life_span_start_time": "727-11-09",
+        "life_span_end_time": "779-05-10",
+        "reign_start_time": "762-05-18",
+        "reign_end_time": "779-05-10",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李适",
+        "era_name": "建中／兴元／贞元",
+        "temple_name": "德宗",
+        "life_span_start_time": "742-05-27",
+        "life_span_end_time": "805-02-25",
+        "reign_start_time": "779-05-10",
+        "reign_end_time": "805-02-25",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李诵",
+        "era_name": "永贞",
+        "temple_name": "顺宗",
+        "life_span_start_time": "761-02-21",
+        "life_span_end_time": "806-02-11",
+        "reign_start_time": "805-02-25",
+        "reign_end_time": "805-08-31",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李纯",
+        "era_name": "元和",
+        "temple_name": "宪宗",
+        "life_span_start_time": "778-03-17",
+        "life_span_end_time": "820-02-14",
+        "reign_start_time": "805-08-31",
+        "reign_end_time": "820-02-14",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李恒",
+        "era_name": "长庆",
+        "temple_name": "穆宗",
+        "life_span_start_time": "795-07-17",
+        "life_span_end_time": "824-02-25",
+        "reign_start_time": "820-02-14",
+        "reign_end_time": "824-02-25",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李湛",
+        "era_name": "宝历",
+        "temple_name": "敬宗",
+        "life_span_start_time": "809-02-09",
+        "life_span_end_time": "827-01-09",
+        "reign_start_time": "824-02-25",
+        "reign_end_time": "827-01-09",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李昂",
+        "era_name": "太和／开成",
+        "temple_name": "文宗",
+        "life_span_start_time": "809-11-20",
+        "life_span_end_time": "840-02-10",
+        "reign_start_time": "827-01-09",
+        "reign_end_time": "840-02-10",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李炎",
+        "era_name": "会昌",
+        "temple_name": "武宗",
+        "life_span_start_time": "814-07-02",
+        "life_span_end_time": "846-04-22",
+        "reign_start_time": "840-02-10",
+        "reign_end_time": "846-04-22",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李忱",
+        "era_name": "大中",
+        "temple_name": "宣宗",
+        "life_span_start_time": "810-04-08",
+        "life_span_end_time": "859-09-07",
+        "reign_start_time": "846-04-22",
+        "reign_end_time": "859-09-07",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李漼",
+        "era_name": "咸通",
+        "temple_name": "懿宗",
+        "life_span_start_time": "833-02-27",
+        "life_span_end_time": "873-08-15",
+        "reign_start_time": "859-09-07",
+        "reign_end_time": "873-08-15",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李儇",
+        "era_name": "乾符／广明／中和／光启／文德",
+        "temple_name": "僖宗",
+        "life_span_start_time": "862-06-08",
+        "life_span_end_time": "888-04-20",
+        "reign_start_time": "873-08-15",
+        "reign_end_time": "888-04-20",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李晔",
+        "era_name": "龙纪／大顺／景福／乾宁／光化／天复／天佑",
+        "temple_name": "昭宗",
+        "life_span_start_time": "867-03-31",
+        "life_span_end_time": "904-09-22",
+        "reign_start_time": "888-04-20",
+        "reign_end_time": "904-09-22",
+        "relatedPolities": "唐朝"
+    },
+    {
+        "name": "李柷",
+        "era_name": "天佑",
+        "temple_name": "哀帝",
+        "life_span_start_time": "892-10-12",
+        "life_span_end_time": "908-03-26",
+        "reign_start_time": "904-09-22",
+        "reign_end_time": "907-06-01",
+        "relatedPolities": "唐朝"
+    }
+]

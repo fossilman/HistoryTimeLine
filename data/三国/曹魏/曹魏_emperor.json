@@ -1,0 +1,52 @@
+[
+    {
+        "name": "曹丕",
+        "era_name": "黃初",
+        "temple_name": "魏文帝",
+        "life_span_start_time": "187-01-01",
+        "life_span_end_time": "226-06-29",
+        "reign_start_time": "220-12-11",
+        "reign_end_time": "226-06-29",
+        "relatedPolities": "曹魏"
+    },
+    {
+        "name": "曹叡",
+        "era_name": "太和／青龍／景初",
+        "temple_name": "魏明帝",
+        "life_span_start_time": "206-01-01",
+        "life_span_end_time": "239-01-22",
+        "reign_start_time": "226-06-29",
+        "reign_end_time": "239-01-22",
+        "relatedPolities": "曹魏"
+    },
+    {
+        "name": "曹芳",
+        "era_name": "正始／嘉平",
+        "temple_name": "",
+        "life_span_start_time": "231-01-01",
+        "life_span_end_time": "274-01-01",
+        "reign_start_time": "239-01-22",
+        "reign_end_time": "254-10-16",
+        "relatedPolities": "曹魏"
+    },
+    {
+        "name": "曹髦",
+        "era_name": "正元／甘露",
+        "temple_name": "",
+        "life_span_start_time": "241-01-01",
+        "life_span_end_time": "260-06-02",
+        "reign_start_time": "254-11-02",
+        "reign_end_time": "260-06-02",
+        "relatedPolities": "曹魏"
+    },
+    {
+        "name": "曹奐",
+        "era_name": "景元／咸熙",
+        "temple_name": "",
+        "life_span_start_time": "246-01-01",
+        "life_span_end_time": "302-01-01",
+        "reign_start_time": "260-06-27",
+        "reign_end_time": "266-02-04",
+        "relatedPolities": "曹魏"
+    }
+]

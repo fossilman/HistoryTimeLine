@@ -1,0 +1,152 @@
+[
+    {
+        "name": "孛儿只斤·铁木真",
+        "era_name": "",
+        "temple_name": "太祖",
+        "life_span_start_time": "1162-05-31",
+        "life_span_end_time": "1227-08-25",
+        "reign_start_time": "1206-05-15",
+        "reign_end_time": "1227-08-25",
+        "relatedPolities": "蒙古帝国"
+    },
+    {
+        "name": "孛儿只斤·窝阔台",
+        "era_name": "",
+        "temple_name": "太宗",
+        "life_span_start_time": "1186-11-07",
+        "life_span_end_time": "1241-12-11",
+        "reign_start_time": "1229-09-13",
+        "reign_end_time": "1241-12-11",
+        "relatedPolities": "蒙古帝国"
+    },
+    {
+        "name": "孛儿只斤·贵由",
+        "era_name": "",
+        "temple_name": "定宗",
+        "life_span_start_time": "1206-01-01",
+        "life_span_end_time": "1248-04-20",
+        "reign_start_time": "1246-08-24",
+        "reign_end_time": "1248-04-20",
+        "relatedPolities": "蒙古帝国"
+    },
+    {
+        "name": "孛儿只斤·蒙哥",
+        "era_name": "",
+        "temple_name": "宪宗",
+        "life_span_start_time": "1209-01-10",
+        "life_span_end_time": "1259-08-11",
+        "reign_start_time": "1251-07-01",
+        "reign_end_time": "1259-08-11",
+        "relatedPolities": "蒙古帝国"
+    },
+    {
+        "name": "孛儿只斤·忽必烈",
+        "era_name": "中统 / 至元",
+        "temple_name": "世祖",
+        "life_span_start_time": "1215-09-23",
+        "life_span_end_time": "1294-02-18",
+        "reign_start_time": "1260-05-05",
+        "reign_end_time": "1294-02-18",
+        "relatedPolities": "元朝"
+    },
+    {
+        "name": "孛儿只斤·真金",
+        "era_name": "",
+        "temple_name": "显宗",
+        "life_span_start_time": "1243-10-15",
+        "life_span_end_time": "1286-01-05",
+        "reign_start_time": "",
+        "reign_end_time": "",
+        "relatedPolities": "元朝（追尊）"
+    },
+    {
+        "name": "孛儿只斤·铁穆耳",
+        "era_name": "元贞 / 大德",
+        "temple_name": "成宗",
+        "life_span_start_time": "1265-10-15",
+        "life_span_end_time": "1307-02-10",
+        "reign_start_time": "1294-05-10",
+        "reign_end_time": "1307-02-10",
+        "relatedPolities": "元朝"
+    },
+    {
+        "name": "孛儿只斤·海山",
+        "era_name": "至大",
+        "temple_name": "武宗",
+        "life_span_start_time": "1281-08-04",
+        "life_span_end_time": "1311-01-27",
+        "reign_start_time": "1307-06-21",
+        "reign_end_time": "1311-01-27",
+        "relatedPolities": "元朝"
+    },
+    {
+        "name": "孛儿只斤·爱育黎拔力八达",
+        "era_name": "皇庆 / 延祐",
+        "temple_name": "仁宗",
+        "life_span_start_time": "1285-04-09",
+        "life_span_end_time": "1320-03-01",
+        "reign_start_time": "1311-04-07",
+        "reign_end_time": "1320-03-01",
+        "relatedPolities": "元朝"
+    },
+    {
+        "name": "孛儿只斤·硕德八剌",
+        "era_name": "至治",
+        "temple_name": "英宗",
+        "life_span_start_time": "1301-02-22",
+        "life_span_end_time": "1323-09-04",
+        "reign_start_time": "1320-04-19",
+        "reign_end_time": "1323-09-04",
+        "relatedPolities": "元朝"
+    },
+    {
+        "name": "孛儿只斤·也孙铁木儿",
+        "era_name": "泰定",
+        "temple_name": "泰定帝",
+        "life_span_start_time": "1293-11-28",
+        "life_span_end_time": "1328-08-15",
+        "reign_start_time": "1323-10-04",
+        "reign_end_time": "1328-08-15",
+        "relatedPolities": "元朝"
+    },
+    {
+        "name": "孛儿只斤·阿速吉八",
+        "era_name": "天顺",
+        "temple_name": "",
+        "life_span_start_time": "1320-01-01",
+        "life_span_end_time": "1328-10-16",
+        "reign_start_time": "1328-09-14",
+        "reign_end_time": "1328-10-16",
+        "relatedPolities": "元朝"
+    },
+    {
+        "name": "孛儿只斤·图帖睦尔",
+        "era_name": "天历 / 至顺",
+        "temple_name": "文宗",
+        "life_span_start_time": "1304-02-16",
+        "life_span_end_time": "1332-09-02",
+        "reign_start_time": "1328-11-14",
+        "reign_end_time": "1332-09-02",
+        "relatedPolities": "元朝"
+    },
+    {
+        "name": "孛儿只斤·懿璘质班",
+        "era_name": "",
+        "temple_name": "宁宗",
+        "life_span_start_time": "1326-08-12",
+        "life_span_end_time": "1332-12-14",
+        "reign_start_time": "1332-10-23",
+        "reign_end_time": "1332-12-14",
+        "relatedPolities": "元朝"
+    },
+    {
+        "name": "孛儿只斤·妥懽帖睦尔",
+        "era_name": "至正",
+        "temple_name": "顺帝",
+        "life_span_start_time": "1320-05-25",
+        "life_span_end_time": "1370-05-23",
+        "reign_start_time": "1333-07-19",
+        "reign_end_time": "1368-09-14",
+        "relatedPolities": "元朝"
+    }
+]

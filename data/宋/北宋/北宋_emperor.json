@@ -1,0 +1,92 @@
+[
+    {
+        "name": "赵匡胤",
+        "era_name": "建隆／乾德／开宝",
+        "temple_name": "太祖",
+        "life_span_start_time": "927-03-21",
+        "life_span_end_time": "976-11-14",
+        "reign_start_time": "960-02-04",
+        "reign_end_time": "976-11-14",
+        "relatedPolities": "北宋"
+    },
+    {
+        "name": "赵光义",
+        "era_name": "太平兴国／雍熙／端拱／淳化／至道",
+        "temple_name": "太宗",
+        "life_span_start_time": "939-11-20",
+        "life_span_end_time": "997-05-08",
+        "reign_start_time": "976-11-15",
+        "reign_end_time": "997-05-08",
+        "relatedPolities": "北宋"
+    },
+    {
+        "name": "赵恒",
+        "era_name": "咸平／景德／大中祥符／天禧／乾兴",
+        "temple_name": "真宗",
+        "life_span_start_time": "968-12-23",
+        "life_span_end_time": "1022-03-23",
+        "reign_start_time": "997-05-08",
+        "reign_end_time": "1022-03-23",
+        "relatedPolities": "北宋"
+    },
+    {
+        "name": "赵祯",
+        "era_name": "天圣／明道／景祐／宝元／康定／庆历／皇祐／至和／嘉祐",
+        "temple_name": "仁宗",
+        "life_span_start_time": "1010-05-30",
+        "life_span_end_time": "1063-04-30",
+        "reign_start_time": "1022-03-24",
+        "reign_end_time": "1063-04-30",
+        "relatedPolities": "北宋"
+    },
+    {
+        "name": "赵曙",
+        "era_name": "治平",
+        "temple_name": "英宗",
+        "life_span_start_time": "1032-02-16",
+        "life_span_end_time": "1067-01-25",
+        "reign_start_time": "1063-05-01",
+        "reign_end_time": "1067-01-25",
+        "relatedPolities": "北宋"
+    },
+    {
+        "name": "赵顼",
+        "era_name": "熙宁／元丰",
+        "temple_name": "神宗",
+        "life_span_start_time": "1048-05-25",
+        "life_span_end_time": "1085-04-01",
+        "reign_start_time": "1067-01-25",
+        "reign_end_time": "1085-04-01",
+        "relatedPolities": "北宋"
+    },
+    {
+        "name": "赵煦",
+        "era_name": "元祐／绍圣／元符",
+        "temple_name": "哲宗",
+        "life_span_start_time": "1077-01-04",
+        "life_span_end_time": "1100-02-23",
+        "reign_start_time": "1085-04-01",
+        "reign_end_time": "1100-02-23",
+        "relatedPolities": "北宋"
+    },
+    {
+        "name": "赵佶",
+        "era_name": "建中靖国／崇宁／大观／政和／宣和",
+        "temple_name": "徽宗",
+        "life_span_start_time": "1082-06-07",
+        "life_span_end_time": "1135-06-04",
+        "reign_start_time": "1100-02-23",
+        "reign_end_time": "1126-01-18",
+        "relatedPolities": "北宋"
+    },
+    {
+        "name": "赵桓",
+        "era_name": "靖康",
+        "temple_name": "钦宗",
+        "life_span_start_time": "1100-05-23",
+        "life_span_end_time": "1161-06-14",
+        "reign_start_time": "1126-01-19",
+        "reign_end_time": "1127-01-09",
+        "relatedPolities": "北宋"
+    }
+]

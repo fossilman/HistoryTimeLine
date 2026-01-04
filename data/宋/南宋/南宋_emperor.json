@@ -1,0 +1,92 @@
+[
+    {
+        "name": "赵构",
+        "era_name": "建炎／绍兴",
+        "temple_name": "高宗",
+        "life_span_start_time": "1107-06-12",
+        "life_span_end_time": "1187-11-09",
+        "reign_start_time": "1127-06-12",
+        "reign_end_time": "1162-07-24",
+        "relatedPolities": "南宋"
+    },
+    {
+        "name": "赵昚",
+        "era_name": "隆兴／乾道／淳熙",
+        "temple_name": "孝宗",
+        "life_span_start_time": "1127-11-27",
+        "life_span_end_time": "1194-06-28",
+        "reign_start_time": "1162-07-24",
+        "reign_end_time": "1189-02-18",
+        "relatedPolities": "南宋"
+    },
+    {
+        "name": "赵惇",
+        "era_name": "绍熙",
+        "temple_name": "光宗",
+        "life_span_start_time": "1147-09-30",
+        "life_span_end_time": "1200-09-17",
+        "reign_start_time": "1189-02-18",
+        "reign_end_time": "1194-07-24",
+        "relatedPolities": "南宋"
+    },
+    {
+        "name": "赵扩",
+        "era_name": "庆元／嘉泰／开禧／嘉定",
+        "temple_name": "宁宗",
+        "life_span_start_time": "1168-11-19",
+        "life_span_end_time": "1224-09-17",
+        "reign_start_time": "1194-07-24",
+        "reign_end_time": "1224-09-17",
+        "relatedPolities": "南宋"
+    },
+    {
+        "name": "赵昀",
+        "era_name": "庆元／嘉定",
+        "temple_name": "理宗",
+        "life_span_start_time": "1205-01-26",
+        "life_span_end_time": "1264-11-16",
+        "reign_start_time": "1224-09-17",
+        "reign_end_time": "1264-11-16",
+        "relatedPolities": "南宋"
+    },
+    {
+        "name": "赵祯",
+        "era_name": "咸淳",
+        "temple_name": "度宗",
+        "life_span_start_time": "1240-05-02",
+        "life_span_end_time": "1274-08-12",
+        "reign_start_time": "1264-11-16",
+        "reign_end_time": "1274-08-12",
+        "relatedPolities": "南宋"
+    },
+    {
+        "name": "赵㬎",
+        "era_name": "德祐",
+        "temple_name": "恭宗",
+        "life_span_start_time": "1271-11-02",
+        "life_span_end_time": "1323-02-??",
+        "reign_start_time": "1274-08-12",
+        "reign_end_time": "1276-02-04",
+        "relatedPolities": "南宋"
+    },
+    {
+        "name": "赵昰",
+        "era_name": "景炎",
+        "temple_name": "端宗",
+        "life_span_start_time": "1270-07-10",
+        "life_span_end_time": "1278-05-08",
+        "reign_start_time": "1276-06-15",
+        "reign_end_time": "1278-05-08",
+        "relatedPolities": "南宋"
+    },
+    {
+        "name": "赵昺",
+        "era_name": "祥兴",
+        "temple_name": "（无/有时称怀宗）",
+        "life_span_start_time": "1272-02-12",
+        "life_span_end_time": "1279-03-19",
+        "reign_start_time": "1278-05-10",
+        "reign_end_time": "1279-03-19",
+        "relatedPolities": "南宋"
+    }
+]

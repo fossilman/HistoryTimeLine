@@ -1,0 +1,22 @@
+[
+    {
+        "name": "刘备",
+        "era_name": "章武",
+        "temple_name": "昭烈",
+        "life_span_start_time": "161-01-01",
+        "life_span_end_time": "223-06-10",
+        "reign_start_time": "221-05-15",
+        "reign_end_time": "223-06-10",
+        "relatedPolities": "蜀汉"
+    },
+    {
+        "name": "刘禅",
+        "era_name": "建兴／延熙／景耀／炎兴",
+        "temple_name": "孝怀",
+        "life_span_start_time": "207-01-01",
+        "life_span_end_time": "271-01-01",
+        "reign_start_time": "223-06-10",
+        "reign_end_time": "263-12-18",
+        "relatedPolities": "蜀汉"
+    }
+]

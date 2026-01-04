@@ -1,0 +1,122 @@
+[
+    {
+        "name": "努尔哈赤",
+        "era_name": "天命",
+        "temple_name": "清太祖",
+        "life_span_start_time": "1559-02-21",
+        "life_span_end_time": "1626-09-30",
+        "reign_start_time": "1616-02-17",
+        "reign_end_time": "1626-09-30",
+        "relatedPolities": "后金 / 清朝 前身"
+    },
+    {
+        "name": "皇太极",
+        "era_name": "天聪 / 崇德",
+        "temple_name": "清太宗",
+        "life_span_start_time": "1592-11-28",
+        "life_span_end_time": "1643-09-21",
+        "reign_start_time": "1626-10-20",
+        "reign_end_time": "1643-09-21",
+        "relatedPolities": "清朝"
+    },
+    {
+        "name": "福临",
+        "era_name": "顺治",
+        "temple_name": "清世祖",
+        "life_span_start_time": "1638-03-15",
+        "life_span_end_time": "1661-02-05",
+        "reign_start_time": "1644-10-30",
+        "reign_end_time": "1661-02-05",
+        "relatedPolities": "清朝"
+    },
+    {
+        "name": "玄烨",
+        "era_name": "康熙",
+        "temple_name": "清圣祖",
+        "life_span_start_time": "1654-05-04",
+        "life_span_end_time": "1722-12-20",
+        "reign_start_time": "1661-02-05",
+        "reign_end_time": "1722-12-20",
+        "relatedPolities": "清朝"
+    },
+    {
+        "name": "胤禛",
+        "era_name": "雍正",
+        "temple_name": "清世宗",
+        "life_span_start_time": "1678-12-13",
+        "life_span_end_time": "1735-10-08",
+        "reign_start_time": "1722-12-27",
+        "reign_end_time": "1735-10-08",
+        "relatedPolities": "清朝"
+    },
+    {
+        "name": "弘历",
+        "era_name": "乾隆",
+        "temple_name": "清高宗",
+        "life_span_start_time": "1711-09-25",
+        "life_span_end_time": "1799-02-07",
+        "reign_start_time": "1735-10-08",
+        "reign_end_time": "1796-02-09",
+        "relatedPolities": "清朝"
+    },
+    {
+        "name": "永琰",
+        "era_name": "嘉庆",
+        "temple_name": "清仁宗",
+        "life_span_start_time": "1760-11-13",
+        "life_span_end_time": "1820-09-02",
+        "reign_start_time": "1796-02-09",
+        "reign_end_time": "1820-09-02",
+        "relatedPolities": "清朝"
+    },
+    {
+        "name": "旻宁",
+        "era_name": "道光",
+        "temple_name": "清宣宗",
+        "life_span_start_time": "1782-09-16",
+        "life_span_end_time": "1850-02-26",
+        "reign_start_time": "1820-10-03",
+        "reign_end_time": "1850-02-26",
+        "relatedPolities": "清朝"
+    },
+    {
+        "name": "奕詝",
+        "era_name": "咸丰",
+        "temple_name": "清文宗",
+        "life_span_start_time": "1831-07-17",
+        "life_span_end_time": "1861-08-22",
+        "reign_start_time": "1850-03-09",
+        "reign_end_time": "1861-08-22",
+        "relatedPolities": "清朝"
+    },
+    {
+        "name": "載淳",
+        "era_name": "同治",
+        "temple_name": "清穆宗",
+        "life_span_start_time": "1856-04-27",
+        "life_span_end_time": "1875-01-12",
+        "reign_start_time": "1861-11-11",
+        "reign_end_time": "1875-01-12",
+        "relatedPolities": "清朝"
+    },
+    {
+        "name": "載湉",
+        "era_name": "光緒",
+        "temple_name": "清德宗",
+        "life_span_start_time": "1871-08-14",
+        "life_span_end_time": "1908-11-14",
+        "reign_start_time": "1875-02-25",
+        "reign_end_time": "1908-11-14",
+        "relatedPolities": "清朝"
+    },
+    {
+        "name": "溥仪",
+        "era_name": "宣統",
+        "temple_name": "",
+        "life_span_start_time": "1906-02-07",
+        "life_span_end_time": "1967-10-17",
+        "reign_start_time": "1908-12-02",
+        "reign_end_time": "1912-02-12",
+        "relatedPolities": "清朝"
+    }
+]

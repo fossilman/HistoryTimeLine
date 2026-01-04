@@ -1,0 +1,42 @@
+[
+    {
+        "name": "孙权",
+        "era_name": "黄武／黄龙／嘉禾／赤乌／太元／神凤",
+        "temple_name": "太祖",
+        "life_span_start_time": "182-01-01",
+        "life_span_end_time": "252-05-21",
+        "reign_start_time": "229-05-23",
+        "reign_end_time": "252-05-21",
+        "relatedPolities": "孙吴"
+    },
+    {
+        "name": "孙亮",
+        "era_name": "建兴／五凤／太平",
+        "temple_name": "",
+        "life_span_start_time": "243-01-01",
+        "life_span_end_time": "260-01-01",
+        "reign_start_time": "252-05-21",
+        "reign_end_time": "258-11-09",
+        "relatedPolities": "孙吴"
+    },
+    {
+        "name": "孙休",
+        "era_name": "永安",
+        "temple_name": "景皇帝",
+        "life_span_start_time": "235-01-01",
+        "life_span_end_time": "264-09-03",
+        "reign_start_time": "258-11-09",
+        "reign_end_time": "264-09-03",
+        "relatedPolities": "孙吴"
+    },
+    {
+        "name": "孙皓",
+        "era_name": "元兴／甘露／宝鼎／建衡／凤凰／天册／天玺／天纪",
+        "temple_name": "",
+        "life_span_start_time": "242-01-01",
+        "life_span_end_time": "284-01-01",
+        "reign_start_time": "264-09-03",
+        "reign_end_time": "280-05-01",
+        "relatedPolities": "孙吴"
+    }
+]

@@ -1,0 +1,142 @@
+[
+    {
+        "name": "刘邦",
+        "era_name": "",
+        "temple_name": "太祖",
+        "life_span_start_time": "-256-01-01",
+        "life_span_end_time": "-195-06-01",
+        "reign_start_time": "-202-02-28",
+        "reign_end_time": "-195-06-01",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘盈",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "-210-01-01",
+        "life_span_end_time": "-188-09-26",
+        "reign_start_time": "-195-06-23",
+        "reign_end_time": "-188-09-26",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘恭",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "-188-01-01",
+        "life_span_end_time": "-184-12-31",
+        "reign_start_time": "-188-10-19",
+        "reign_end_time": "-184-06-15",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘弘",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "-184-01-01",
+        "life_span_end_time": "-180-12-31",
+        "reign_start_time": "-184-06-15",
+        "reign_end_time": "-180-11-14",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘恒",
+        "era_name": "",
+        "temple_name": "太宗",
+        "life_span_start_time": "-203-01-01",
+        "life_span_end_time": "-157-07-06",
+        "reign_start_time": "-180-11-14",
+        "reign_end_time": "-157-07-06",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘启",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "-188-01-01",
+        "life_span_end_time": "-141-03-09",
+        "reign_start_time": "-157-01-14",
+        "reign_end_time": "-141-03-09",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘彻",
+        "era_name": "",
+        "temple_name": "世宗",
+        "life_span_start_time": "-156-01-01",
+        "life_span_end_time": "-087-03-29",
+        "reign_start_time": "-141-03-09",
+        "reign_end_time": "-087-03-29",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘弗陵",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "-094-01-01",
+        "life_span_end_time": "-074-01-10",
+        "reign_start_time": "-087-03-29",
+        "reign_end_time": "-074-01-10",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘询",
+        "era_name": "",
+        "temple_name": "中宗",
+        "life_span_start_time": "-091-01-01",
+        "life_span_end_time": "-048-01-10",
+        "reign_start_time": "-074-09-10",
+        "reign_end_time": "-048-01-10",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘奭",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "-075-01-01",
+        "life_span_end_time": "-033-12-31",
+        "reign_start_time": "-048-01-10",
+        "reign_end_time": "-033-12-31",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘驁",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "-051-01-01",
+        "life_span_end_time": "-007-12-31",
+        "reign_start_time": "-033-01-01",
+        "reign_end_time": "-007-12-31",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘欣",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "-027-01-01",
+        "life_span_end_time": "-001-12-31",
+        "reign_start_time": "-007-01-01",
+        "reign_end_time": "-001-12-31",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘衎",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "-009-01-01",
+        "life_span_end_time": "006-12-31",
+        "reign_start_time": "-001-01-01",
+        "reign_end_time": "006-12-31",
+        "relatedPolities": "Western Han"
+    },
+    {
+        "name": "刘婴",
+        "era_name": "",
+        "temple_name": "",
+        "life_span_start_time": "005-01-01",
+        "life_span_end_time": "025-12-31",
+        "reign_start_time": "006-01-01",
+        "reign_end_time": "009-12-31",
+        "relatedPolities": "Western Han"
+    }
+]

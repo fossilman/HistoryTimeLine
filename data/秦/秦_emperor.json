@@ -1,0 +1,32 @@
+[
+    {
+      "name": "嬴政",
+      "era_name": "",
+      "temple_name": "",
+      "life_span_start_time": "-0259-01-01",
+      "life_span_end_time": "-0210-09-10",
+      "reign_start_time": "-0247-01-01",
+      "reign_end_time": "-0210-09-10",
+      "relatedPolities": "秦朝"
+    },
+    {
+      "name": "胡亥",
+      "era_name": "",
+      "temple_name": "",
+      "life_span_start_time": "-0230-01-01",
+      "life_span_end_time": "-0207-09-01",
+      "reign_start_time": "-0210-09-10",
+      "reign_end_time": "-0207-09-01",
+      "relatedPolities": "秦朝"
+    },
+    {
+      "name": "子嬰",
+      "era_name": "",
+      "temple_name": "",
+      "life_span_start_time": "",
+      "life_span_end_time": "-0206-01-01",
+      "reign_start_time": "-0207-09-01",
+      "reign_end_time": "-0207-11-17",
+      "relatedPolities": "秦朝"
+    }
+  ]
