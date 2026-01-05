@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import sequelize from '../config/database.js';
-import { Civilization, Polity, Person, Event } from '../models/index.js';
+import { Civilization, Dynasty, BiogMainCore, Event } from '../models/index.js';
 
 /**
  * 根据视窗时间范围和缩放级别，智能返回对应密度的历史数据
@@ -45,10 +45,23 @@ export const getTimelineData = async (req, res) => {
 
     // 根据视窗跨度决定返回的数据密度
     // 政权层永久显示（不受视窗跨度限制，但受时间范围限制）
-    let polities = await Polity.findAll({
+    // 查询与时间窗口有重叠的朝代：startYear <= end 且 endYear >= start
+    let polities = await Dynasty.findAll({
       where: {
-        startYear: { [Op.lte]: end },
-        endYear: { [Op.gte]: start }
+        [Op.and]: [
+          {
+            [Op.or]: [
+              { startYear: { [Op.lte]: end } },
+              { startYear: null }
+            ]
+          },
+          {
+            [Op.or]: [
+              { endYear: { [Op.gte]: start } },
+              { endYear: null }
+            ]
+          }
+        ]
       },
       raw: true
     });
@@ -57,12 +70,28 @@ export const getTimelineData = async (req, res) => {
     let events = [];
 
     // 视窗 <= 300年时，显示人物
+    // 查询与时间窗口有重叠的人物：birthYear <= end 且 deathYear >= start
+    // 限制最多返回100个人物
     if (span <= 300) {
-      persons = await Person.findAll({
+      persons = await BiogMainCore.findAll({
         where: {
-          birthYear: { [Op.lte]: end },
-          deathYear: { [Op.gte]: start }
+          [Op.and]: [
+            {
+              [Op.or]: [
+                { birthYear: { [Op.lte]: end } },
+                { birthYear: null }
+              ]
+            },
+            {
+              [Op.or]: [
+                { deathYear: { [Op.gte]: start } },
+                { deathYear: null }
+              ]
+            }
+          ]
         },
+        limit: 100,
+        order: [['c_index_year', 'ASC']], // 按索引年份排序，优先显示有索引年份的人物
         raw: true
       });
     }
@@ -98,21 +127,20 @@ export const getTimelineData = async (req, res) => {
       })),
       polities: polities.map(p => ({
         id: p.id,
-        name: p.name,
-        civilizationId: p.civilizationId,
+        name: p.nameChn || p.name || '', // 优先使用中文名
         startYear: p.startYear,
         endYear: p.endYear,
-        color: p.color,
-        importance: p.importance
+        color: '#808080', // 默认颜色，因为新表中没有color字段
+        importance: 'medium' // 默认重要程度
       })),
       persons: persons.map(p => ({
         id: p.id,
-        name: p.name,
+        name: p.nameChn || p.name || '', // 优先使用中文名
         birthYear: p.birthYear,
         deathYear: p.deathYear,
-        polityId: p.polityId,
-        importance: p.importance,
-        title: p.title
+        polityId: p.dynastyId,
+        importance: 'medium', // 默认重要程度
+        title: null // 新表中没有title字段
       })),
       events: events.map(e => ({
         id: e.id,

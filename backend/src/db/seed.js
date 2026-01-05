@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
 import sequelize from '../config/database.js';
-import { Civilization, Polity, Person, Event } from '../models/index.js';
+import { Civilization, Dynasty, BiogMainCore, Event } from '../models/index.js';
 
 dotenv.config();
 
@@ -14,8 +14,8 @@ const seed = async () => {
     if (process.env.NODE_ENV === 'development') {
       console.log('🗑️  清空现有数据...');
       await Event.destroy({ where: {}, force: true });
-      await Person.destroy({ where: {}, force: true });
-      await Polity.destroy({ where: {}, force: true });
+      await BiogMainCore.destroy({ where: {}, force: true });
+      await Dynasty.destroy({ where: {}, force: true });
       await Civilization.destroy({ where: {}, force: true });
     }
 
@@ -47,7 +47,7 @@ const seed = async () => {
 
     const createdPolities = {};
     for (const polityData of politiesData) {
-      const polity = await Polity.create({
+      const polity = await Dynasty.create({
         ...polityData,
         civilizationId: siniticCiv.id
       });
@@ -70,7 +70,7 @@ const seed = async () => {
     ];
 
     for (const personData of personsData) {
-      await Person.create({
+      await BiogMainCore.create({
         ...personData,
         civilizationId: siniticCiv.id,
         briefIntro: `${personData.name}，${personData.title}`

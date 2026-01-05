@@ -1,43 +1,42 @@
 import Civilization from './Civilization.js';
-import Polity from './Polity.js';
-import Person from './Person.js';
+import Dynasty from './Dynasty.js';
+import BiogMainCore from './BiogMainCore.js';
 import Event from './Event.js';
 
 // 定义关联关系
-Polity.belongsTo(Civilization, {
-  foreignKey: 'civilizationId',
-  as: 'civilization'
+// BiogMainCore 通过 c_dy 关联到 Dynasty (DYNASTIES)
+BiogMainCore.belongsTo(Dynasty, {
+  foreignKey: 'dynastyId',
+  targetKey: 'id',
+  as: 'dynasty'
 });
 
-Civilization.hasMany(Polity, {
-  foreignKey: 'civilizationId',
-  as: 'polities'
-});
-
-Person.belongsTo(Polity, {
-  foreignKey: 'polityId',
-  as: 'polity'
-});
-
-Person.belongsTo(Civilization, {
-  foreignKey: 'civilizationId',
-  as: 'civilization'
-});
-
-Polity.hasMany(Person, {
-  foreignKey: 'polityId',
+Dynasty.hasMany(BiogMainCore, {
+  foreignKey: 'dynastyId',
+  sourceKey: 'id',
   as: 'persons'
 });
 
-Civilization.hasMany(Person, {
+// Dynasty 关联到 Civilization
+// 禁用外键约束，因为数据库表已存在且列类型可能不完全匹配
+Dynasty.belongsTo(Civilization, {
   foreignKey: 'civilizationId',
-  as: 'persons'
+  targetKey: 'id',
+  as: 'civilization',
+  constraints: false // 禁用外键约束
+});
+
+Civilization.hasMany(Dynasty, {
+  foreignKey: 'civilizationId',
+  sourceKey: 'id',
+  as: 'dynasties',
+  constraints: false // 禁用外键约束
 });
 
 export {
   Civilization,
-  Polity,
-  Person,
+  Dynasty,
+  BiogMainCore,
   Event
 };
 
