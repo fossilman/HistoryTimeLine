@@ -3,7 +3,6 @@ export interface Civilization {
   name: string;
   startYear: number;
   endYear: number | null;
-  color: string;
 }
 
 export interface Polity {
@@ -26,23 +25,10 @@ export interface Person {
   title?: string;
 }
 
-export interface Event {
-  id: string;
-  name: string;
-  type: 'point' | 'duration';
-  year?: number;
-  startYear?: number;
-  endYear?: number;
-  importance: 'high' | 'medium' | 'low';
-  relatedPolities?: string[];
-  relatedPersons?: string[];
-}
-
 export interface TimelineData {
   civilizations: Civilization[];
   polities: Polity[];
   persons: Person[];
-  events: Event[];
   metadata: {
     viewportSpan: number;
     densityLevel: string;

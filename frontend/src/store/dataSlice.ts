@@ -1,11 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TimelineData, Civilization, Polity, Person, Event } from '../types';
+import { TimelineData, Civilization, Polity, Person } from '../types';
 
 interface DataState {
   civilizations: Civilization[];
   polities: Polity[];
   persons: Person[];
-  events: Event[];
   loading: boolean;
   error: string | null;
 }
@@ -14,7 +13,6 @@ const initialState: DataState = {
   civilizations: [],
   polities: [],
   persons: [],
-  events: [],
   loading: false,
   error: null
 };
@@ -24,11 +22,10 @@ const dataSlice = createSlice({
   initialState,
   reducers: {
     setData: (state, action: PayloadAction<TimelineData>) => {
-      const { civilizations, polities, persons, events } = action.payload;
+      const { civilizations, polities, persons } = action.payload;
       state.civilizations = civilizations;
       state.polities = polities;
       state.persons = persons;
-      state.events = events;
       state.loading = false;
       state.error = null;
     },

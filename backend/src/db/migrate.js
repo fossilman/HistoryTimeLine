@@ -1,5 +1,5 @@
 import sequelize from '../config/database.js';
-import { Civilization, Dynasty, BiogMainCore, Event } from '../models/index.js';
+import { Civilization, Dynasty, BiogMainCore } from '../models/index.js';
 
 const migrate = async () => {
   try {

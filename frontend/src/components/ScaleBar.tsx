@@ -20,15 +20,20 @@ export const ScaleBar: React.FC<ScaleBarProps> = ({
   const timeRange = formatTimeRange(startYear, endYear, viewportSpan);
   
   // 格式化视窗跨度显示
+  // 视窗跨度仅当小于1年时，使用月为单位描述，最小单位为1个月，不要小数
   const formatSpan = () => {
-    if (viewportSpan >= 1) {
-      return `${Math.round(viewportSpan * 100) / 100} 年`;
-    } else if (viewportSpan >= 1/12) {
+    if (viewportSpan < 1) {
+      // 小于1年时，使用月为单位，最小单位为1个月，不要小数
       const months = viewportSpan * 12;
-      return `${Math.round(months * 10) / 10} 月`;
+      return `${Math.round(months)} 月`;
     } else {
-      const days = viewportSpan * 365;
-      return `${Math.round(days)} 日`;
+      // 大于等于1年时，使用年为单位
+      const rounded = Math.round(viewportSpan * 100) / 100;
+      // 如果是整数，不显示小数
+      if (rounded === Math.round(rounded)) {
+        return `${Math.round(rounded)} 年`;
+      }
+      return `${rounded} 年`;
     }
   };
 

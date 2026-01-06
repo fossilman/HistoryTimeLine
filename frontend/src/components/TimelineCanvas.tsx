@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Civilization, Polity, Person, Event } from '../types';
+import { Civilization, Polity, Person } from '../types';
 import { assignTracks } from '../utils/trackAssignment';
 import { yearToPixel } from '../utils/coordinateTransform';
 import { generateTimeMarks, formatTime } from '../utils/dateUtils';
@@ -20,10 +20,9 @@ interface TimelineCanvasProps {
   civilizations: Civilization[];
   polities: Polity[];
   persons: Person[];
-  events: Event[];
   showPersons?: boolean;
-  showEvents?: boolean;
-  onItemClick?: (item: { type: string; data: any }) => void;
+  onItemHover?: (item: { type: string; data: any } | null) => void;
+  matchedPerson?: Person | null;
 }
 
 export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
@@ -34,23 +33,11 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
   civilizations,
   polities,
   persons,
-  events,
   showPersons = true,
-  showEvents = true,
-  onItemClick
+  onItemHover,
+  matchedPerson
 }) => {
   const yearSpan = endYear - startYear;
-
-  // 过滤持续事件和瞬时事件
-  const durationEvents = useMemo(() => 
-    events.filter(e => e.type === 'duration' && e.startYear && e.endYear),
-    [events]
-  );
-  
-  const pointEvents = useMemo(() => 
-    events.filter(e => e.type === 'point' && e.year),
-    [events]
-  );
 
   // 分配政权轨道
   const polityItems = polities.map(p => ({
@@ -67,14 +54,6 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
     end: p.deathYear
   }));
   const personTracks = assignTracks(personItems);
-
-  // 分配持续事件轨道
-  const durationEventItems = durationEvents.map(e => ({
-    id: e.id,
-    start: e.startYear!,
-    end: e.endYear!
-  }));
-  const durationEventTracks = assignTracks(durationEventItems);
 
   // 计算每个文明包含的所有政权占用的轨道范围（用于计算文明层高度）
   const civilizationTrackRanges = useMemo(() => {
@@ -104,19 +83,11 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
     return ranges;
   }, [civilizations, polities, polityTracks]);
 
-  // 计算每个政权包含的所有人物和事件占用的轨道范围（用于计算政权层高度）
+  // 计算每个政权包含的所有人物占用的轨道范围（用于计算政权层高度）
   const polityTrackRanges = useMemo(() => {
     const ranges: { [polityId: string]: { minTrack: number; maxTrack: number } } = {};
     polities.forEach(polity => {
       const polityPersons = persons.filter(p => p.polityId === polity.id);
-      const polityEvents = events.filter(e => {
-        if (e.type === 'point' && e.year) {
-          return e.relatedPolities?.includes(polity.id);
-        } else if (e.type === 'duration' && e.startYear && e.endYear) {
-          return e.relatedPolities?.includes(polity.id);
-        }
-        return false;
-      });
       
       const trackIndices: number[] = [];
       polityPersons.forEach(p => {
@@ -125,18 +96,9 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
           trackIndices.push(trackIdx);
         }
       });
-      polityEvents.forEach(e => {
-        if (e.type === 'duration') {
-          const trackIdx = durationEventTracks.assignments[e.id];
-          if (trackIdx !== undefined) {
-            trackIndices.push(trackIdx);
-          }
-        }
-        // 点事件没有轨道，暂时忽略
-      });
       
       if (trackIndices.length === 0) {
-        // 没有相关人物和事件，使用默认高度（单轨道）
+        // 没有相关人物，使用默认高度（单轨道）
         ranges[polity.id] = { minTrack: 0, maxTrack: 0 };
       } else {
         const minTrack = Math.min(...trackIndices);
@@ -145,7 +107,7 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
       }
     });
     return ranges;
-  }, [polities, persons, events, personTracks, durationEventTracks]);
+  }, [polities, persons, personTracks]);
 
   // 获取时间刻度
   const timeMarks = useMemo(() => {
@@ -189,8 +151,9 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
           const lastPolityBottom = lastPolityTop + POLITY_HEIGHT;
           const civHeight = lastPolityBottom + BOUNDARY_PADDING - civTop;
           
-          // 将 HEX 颜色转换为 rgba，设置透明度为 10%
-          const bgColor = hexToRgba(civ.color, 0.1);
+          // 使用默认颜色，设置透明度为 10%
+          const DEFAULT_CIV_COLOR = '#94a3b8'; // 默认灰色
+          const bgColor = hexToRgba(DEFAULT_CIV_COLOR, 0.1);
           
           return (
             <div
@@ -213,7 +176,7 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
                   opacity: 0.15,
                   fontSize: `${Math.min(48, Math.min(x2 - x1, civHeight) * 0.3)}px`,
                   fontWeight: 'bold',
-                  color: civ.color,
+                  color: DEFAULT_CIV_COLOR,
                   textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
                   userSelect: 'none',
                   overflow: 'hidden',
@@ -244,39 +207,6 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
             );
           })}
         </svg>
-      </div>
-
-      {/* 持续型事件 - 视窗小于等于100年时显示，支持渐入渐出，Z轴在政权层之上 */}
-      <div className="absolute left-0 right-0 top-20" style={{ zIndex: 20 }}>
-        {durationEvents.map((event) => {
-          const x1 = yearToPixel(Math.max(event.startYear!, startYear), startYear, endYear, width);
-          const x2 = yearToPixel(Math.min(event.endYear!, endYear), startYear, endYear, width);
-          const trackIndex = durationEventTracks.assignments[event.id];
-          
-          // 根据视窗大小和复选框状态决定是否显示
-          const shouldShow = yearSpan <= 100 && showEvents;
-          
-          return (
-            <div
-              key={event.id}
-              className={`absolute h-8 rounded cursor-pointer hover:opacity-100 transition-all duration-300 ease-in-out ${
-                shouldShow ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'
-              }`}
-              style={{
-                left: `${x1}px`,
-                width: `${x2 - x1}px`,
-                top: `${trackIndex * 36}px`,
-                backgroundColor: 'rgba(255, 107, 107, 0.3)',
-                border: '1px solid rgba(255, 107, 107, 0.6)'
-              }}
-              onClick={() => onItemClick?.({ type: 'duration_event', data: event })}
-            >
-              <div className="flex items-center h-full px-2">
-                <span className="text-red-700 text-xs font-semibold">{event.name}</span>
-              </div>
-            </div>
-          );
-        })}
       </div>
 
       {/* 政权层 - 永久展示，透明度70%，Z轴在文明层之上 */}
@@ -323,6 +253,13 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
           // 将 HEX 颜色转换为 rgba，设置透明度为 70%
           const bgColor = hexToRgba(polity.color, 0.7);
           
+          // 检查是否应该显示红点标记（匹配的人物属于这个政权）
+          const shouldShowMarker = matchedPerson && matchedPerson.polityId === polity.id;
+          // 计算红点的位置（在人物出生年的位置，相对于整个时间轴）
+          const markerX = matchedPerson && shouldShowMarker && matchedPerson.birthYear
+            ? yearToPixel(matchedPerson.birthYear, startYear, endYear, width)
+            : null;
+
           return (
             <div
               key={polity.id}
@@ -336,13 +273,33 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
                 border: '2px solid rgba(255,255,255,0.5)',
                 zIndex: 10
               }}
-              onClick={() => onItemClick?.({ type: 'polity', data: polity })}
+              onMouseEnter={() => onItemHover?.({ type: 'polity', data: polity })}
+              onMouseLeave={() => onItemHover?.(null)}
             >
               <div className="flex items-center justify-center h-full px-3">
                 <span className="text-white font-bold text-sm drop-shadow-lg">
                   {polity.name}
                 </span>
               </div>
+              
+              {/* 红点标记 - 显示在匹配人物的出生年位置 */}
+              {shouldShowMarker && markerX !== null && markerX >= 0 && markerX <= width && markerX >= x1 && markerX <= x1 + widthPx && (
+                <div
+                  className="absolute top-1/2 animate-pulse"
+                  style={{
+                    left: `${markerX - x1}px`,
+                    width: '12px',
+                    height: '12px',
+                    backgroundColor: '#ef4444',
+                    borderRadius: '50%',
+                    border: '2px solid white',
+                    boxShadow: '0 0 8px rgba(239, 68, 68, 0.8)',
+                    zIndex: 15,
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                  title={matchedPerson?.name}
+                />
+              )}
             </div>
           );
         })}
@@ -398,11 +355,12 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.width = `${expandedWidth}px`;
+                onItemHover?.({ type: 'person', data: person });
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.width = `${barWidth}px`;
+                onItemHover?.(null);
               }}
-              onClick={() => onItemClick?.({ type: 'person', data: person })}
             >
               <div className="flex items-center h-full px-3 w-full overflow-hidden">
                 <span className="text-white text-xs font-semibold whitespace-nowrap flex-shrink-0">
@@ -418,40 +376,6 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
         })}
       </div>
 
-      {/* 事件点 - 视窗小于等于100年时显示，支持渐入渐出，Z轴在政权层之上 */}
-      <div 
-        className="absolute left-0 right-0" 
-        style={{ 
-          top: `${32 + polityTracks.trackCount * 64 + personTracks.trackCount * 40 + 64}px`,
-          zIndex: 20
-        }}
-      >
-        {pointEvents.map((event, idx) => {
-          const x = yearToPixel(event.year!, startYear, endYear, width);
-          
-          // 根据视窗大小和复选框状态决定是否显示
-          const shouldShow = yearSpan <= 100 && showEvents;
-          
-          return (
-            <div
-              key={event.id}
-              className={`absolute cursor-pointer group transition-all duration-300 ease-in-out ${
-                shouldShow ? 'opacity-100 scale-100' : 'opacity-0 scale-50 pointer-events-none'
-              }`}
-              style={{ 
-                left: `${x - 6}px`, 
-                top: `${(idx % 3) * 32}px`
-              }}
-              onClick={() => onItemClick?.({ type: 'event', data: event })}
-            >
-              <div className="w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg hover:scale-150 transition-transform"></div>
-              <div className="absolute top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-30">
-                {event.name} ({event.year})
-              </div>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 };

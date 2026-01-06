@@ -2,15 +2,15 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ViewportState } from '../types';
 
 const BASE_YEAR_SPAN = 2000;
-const MIN_SCALE = 0.1; // 最小缩放：视窗显示 20,000 年
-const MAX_SCALE = 2000; // 最大缩放：视窗显示 1 年
+const MIN_SCALE = 2; // 最小缩放：视窗显示 1000 年 (2000 / 2 = 1000)
+const MAX_SCALE = 24000; // 最大缩放：视窗显示 1个月 (2000 / 24000 = 1/12 年)
 
 const initialState: ViewportState = {
-  zoomScale: 0.5,
-  centerYear: -200,
-  startYear: -1200,
-  endYear: 800,
-  viewportSpan: BASE_YEAR_SPAN / 0.5,
+  zoomScale: 2, // 视窗跨度1000年 (2000 / 2 = 1000)
+  centerYear: 800, // 300和1300的中间
+  startYear: 300,
+  endYear: 1300,
+  viewportSpan: 1000,
   offsetX: 0,
   isDragging: false
 };

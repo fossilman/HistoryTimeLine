@@ -25,18 +25,13 @@ const Civilization = sequelize.define('Civilization', {
     field: 'end_year',
     comment: '结束年份（NULL表示持续至今）'
   },
-  color: {
-    type: DataTypes.STRING(7),
-    allowNull: false,
-    comment: 'HEX颜色值 #RRGGBB'
-  },
   description: {
     type: DataTypes.TEXT,
     allowNull: true,
     comment: '文明描述'
   }
 }, {
-  tableName: 'civilizations',
+  tableName: 'CIVILIZATIONS',
   timestamps: true,
   indexes: [
     {

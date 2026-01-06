@@ -30,6 +30,21 @@ export const timelineApi = {
     } else {
       throw new Error(response.data.error?.message || '获取数据失败');
     }
+  },
+
+  /**
+   * 搜索人物
+   */
+  searchPerson: async (query: string): Promise<any[]> => {
+    const response = await axios.get(`${API_BASE_URL}/timeline/search`, {
+      params: { query }
+    });
+    
+    if (response.data.success) {
+      return response.data.data;
+    } else {
+      throw new Error(response.data.error?.message || '搜索失败');
+    }
   }
 };
 

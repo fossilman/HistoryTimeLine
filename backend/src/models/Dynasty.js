@@ -44,6 +44,20 @@ const Dynasty = sequelize.define('Dynasty', {
     field: 'civilization_id',
     defaultValue: 'sinitic',
     comment: '所属文明ID'
+  },
+  status: {
+    type: DataTypes.TINYINT,
+    allowNull: false,
+    defaultValue: 1,
+    field: 'status',
+    comment: '显示状态：0=不显示，1=显示'
+  },
+  cLevel: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    field: 'c_level',
+    comment: '层级：数字小的排在上方'
   }
 }, {
   tableName: 'DYNASTIES',
@@ -60,6 +74,18 @@ const Dynasty = sequelize.define('Dynasty', {
     {
       name: 'idx_civilization_id',
       fields: ['civilization_id']
+    },
+    {
+      name: 'idx_status',
+      fields: ['status']
+    },
+    {
+      name: 'idx_level',
+      fields: ['c_level']
+    },
+    {
+      name: 'idx_status_level',
+      fields: ['status', 'c_level']
     }
   ]
 });

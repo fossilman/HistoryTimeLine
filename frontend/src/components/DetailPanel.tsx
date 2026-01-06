@@ -1,13 +1,12 @@
 import React from 'react';
-import { User, MapPin, Calendar, X } from 'lucide-react';
-import { Polity, Person, Event } from '../types';
+import { User, Building2 } from 'lucide-react';
+import { Polity, Person } from '../types';
 
 interface DetailPanelProps {
-  item: { type: string; data: Polity | Person | Event } | null;
-  onClose: () => void;
+  item: { type: string; data: Polity | Person } | null;
 }
 
-export const DetailPanel: React.FC<DetailPanelProps> = ({ item, onClose }) => {
+export const DetailPanel: React.FC<DetailPanelProps> = ({ item }) => {
   if (!item) return null;
 
   const formatYear = (year: number) => {
@@ -15,37 +14,43 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({ item, onClose }) => {
   };
 
   return (
-    <div className="absolute bottom-6 right-6 w-80 bg-white rounded-xl shadow-2xl p-6 border border-slate-200 z-50">
-      <button 
-        onClick={onClose}
-        className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-6 h-6 flex items-center justify-center"
-      >
-        <X className="w-5 h-5" />
-      </button>
+    <div className="fixed bottom-6 right-6 w-80 bg-white rounded-xl shadow-2xl p-6 border border-slate-200 z-50 transition-all duration-300 opacity-100 animate-fade-in">
       
       {item.type === 'polity' && (
         <div>
           <div className="flex items-center gap-3 mb-4">
             <div 
-              className="w-12 h-12 rounded-lg flex-shrink-0"
+              className="w-12 h-12 rounded-lg flex-shrink-0 flex items-center justify-center"
               style={{ backgroundColor: (item.data as Polity).color }}
-            ></div>
+            >
+              <Building2 className="w-6 h-6 text-white" />
+            </div>
             <div>
               <h3 className="text-xl font-bold text-slate-800">{(item.data as Polity).name}</h3>
-              <p className="text-sm text-slate-500">政权</p>
+              <p className="text-sm text-slate-500">朝代</p>
             </div>
           </div>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-600">存续:</span>
-              <span className="font-mono font-semibold">
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-600">存续时间:</span>
+              <span className="font-mono font-semibold text-slate-800">
                 {formatYear((item.data as Polity).startYear)} - {formatYear((item.data as Polity).endYear)}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-600">年数:</span>
-              <span className="font-semibold">
+            <div className="flex justify-between py-1">
+              <span className="text-slate-600">存续年数:</span>
+              <span className="font-semibold text-slate-800">
                 {(item.data as Polity).endYear - (item.data as Polity).startYear} 年
+              </span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-slate-600">重要程度:</span>
+              <span className={`font-semibold ${
+                (item.data as Polity).importance === 'high' ? 'text-red-600' :
+                (item.data as Polity).importance === 'medium' ? 'text-amber-600' : 'text-slate-600'
+              }`}>
+                {(item.data as Polity).importance === 'high' ? '高' :
+                 (item.data as Polity).importance === 'medium' ? '中' : '低'}
               </span>
             </div>
           </div>
@@ -60,78 +65,42 @@ export const DetailPanel: React.FC<DetailPanelProps> = ({ item, onClose }) => {
             </div>
             <div>
               <h3 className="text-xl font-bold text-slate-800">{(item.data as Person).name}</h3>
-              <p className="text-sm text-slate-500">人物</p>
+              <p className="text-sm text-slate-500">
+                {(item.data as Person).title || '人物'}
+              </p>
             </div>
           </div>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-600">生卒:</span>
-              <span className="font-mono font-semibold">
+            <div className="flex justify-between py-1 border-b border-slate-100">
+              <span className="text-slate-600">生卒年份:</span>
+              <span className="font-mono font-semibold text-slate-800">
                 {formatYear((item.data as Person).birthYear)} - {formatYear((item.data as Person).deathYear)}
               </span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between py-1">
               <span className="text-slate-600">享年:</span>
-              <span className="font-semibold">
+              <span className="font-semibold text-slate-800">
                 {(item.data as Person).deathYear - (item.data as Person).birthYear} 岁
               </span>
             </div>
-          </div>
-        </div>
-      )}
-      
-      {item.type === 'event' && (
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-lg bg-red-500 flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-800">{(item.data as Event).name}</h3>
-              <p className="text-sm text-slate-500">瞬时事件</p>
-            </div>
-          </div>
-          <div className="space-y-2 text-sm">
-            {(item.data as Event).year && (
-              <div className="flex justify-between">
-                <span className="text-slate-600">年份:</span>
-                <span className="font-mono font-semibold">
-                  {formatYear((item.data as Event).year)}
+            {(item.data as Person).title && (
+              <div className="flex justify-between py-1">
+                <span className="text-slate-600">身份:</span>
+                <span className="font-semibold text-slate-800">
+                  {(item.data as Person).title}
                 </span>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {item.type === 'duration_event' && (
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-lg bg-red-400 flex items-center justify-center flex-shrink-0">
-              <Calendar className="w-6 h-6 text-white" />
+            <div className="flex justify-between py-1">
+              <span className="text-slate-600">重要程度:</span>
+              <span className={`font-semibold ${
+                (item.data as Person).importance === 'high' ? 'text-red-600' :
+                (item.data as Person).importance === 'medium' ? 'text-amber-600' : 'text-slate-600'
+              }`}>
+                {(item.data as Person).importance === 'high' ? '高' :
+                 (item.data as Person).importance === 'medium' ? '中' : '低'}
+              </span>
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-800">{(item.data as Event).name}</h3>
-              <p className="text-sm text-slate-500">时期</p>
-            </div>
-          </div>
-          <div className="space-y-2 text-sm">
-            {(item.data as Event).startYear && (item.data as Event).endYear && (
-              <>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">时期:</span>
-                  <span className="font-mono font-semibold">
-                    {formatYear((item.data as Event).startYear)} - {formatYear((item.data as Event).endYear)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">持续:</span>
-                  <span className="font-semibold">
-                    {(item.data as Event).endYear! - (item.data as Event).startYear!} 年
-                  </span>
-                </div>
-              </>
-            )}
           </div>
         </div>
       )}

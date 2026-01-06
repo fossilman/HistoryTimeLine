@@ -1,7 +1,6 @@
 import Civilization from './Civilization.js';
 import Dynasty from './Dynasty.js';
 import BiogMainCore from './BiogMainCore.js';
-import Event from './Event.js';
 
 // 定义关联关系
 // BiogMainCore 通过 c_dy 关联到 Dynasty (DYNASTIES)
@@ -36,7 +35,6 @@ Civilization.hasMany(Dynasty, {
 export {
   Civilization,
   Dynasty,
-  BiogMainCore,
-  Event
+  BiogMainCore
 };
 

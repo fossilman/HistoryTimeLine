@@ -1,23 +1,86 @@
-import React from 'react';
-import { Search, Home, Calendar, User, MapPin } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, Home, X } from 'lucide-react';
+import { Person, Polity } from '../types';
+
+interface SearchResult extends Person {
+  polityName?: string;
+}
 
 interface ToolBarProps {
   onReset?: () => void;
-  onSearch?: () => void;
-  showPersons?: boolean;
-  showEvents?: boolean;
-  onTogglePersons?: (show: boolean) => void;
-  onToggleEvents?: (show: boolean) => void;
+  onSearch?: (query: string) => void;
+  onSelectPerson?: (person: Person) => void;
+  searchResults?: SearchResult[];
+  polities?: Polity[];
 }
 
 export const ToolBar: React.FC<ToolBarProps> = ({ 
   onReset, 
   onSearch,
-  showPersons = true,
-  showEvents = true,
-  onTogglePersons,
-  onToggleEvents
+  onSelectPerson,
+  searchResults = [],
+  polities = []
 }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 点击外部关闭下拉列表
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+        setIsSearchActive(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setShowDropdown(query.trim().length > 0 && searchResults.length > 0);
+    if (onSearch) {
+      onSearch(query);
+    }
+  };
+
+  const handleSearchFocus = () => {
+    setIsSearchActive(true);
+    if (searchQuery.trim().length > 0 && searchResults.length > 0) {
+      setShowDropdown(true);
+    }
+  };
+
+  const handleClear = () => {
+    setSearchQuery('');
+    setShowDropdown(false);
+    if (onSearch) {
+      onSearch('');
+    }
+  };
+
+  const handleSelectPerson = (person: Person) => {
+    setSearchQuery('');
+    setShowDropdown(false);
+    setIsSearchActive(false);
+    if (onSelectPerson) {
+      onSelectPerson(person);
+    }
+  };
+
+  // 获取朝代名称
+  const getPolityName = (polityId: string): string => {
+    const polity = polities.find(p => p.id === polityId);
+    return polity?.name || '未知朝代';
+  };
+
   return (
     <div className="bg-white border-b border-slate-200 shadow-sm">
       <div className="max-w-full mx-auto px-6 py-4 flex items-center justify-between">
@@ -25,37 +88,60 @@ export const ToolBar: React.FC<ToolBarProps> = ({
           <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
             History Timezone
           </h1>
-          <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-1.5">
-            <Calendar className="w-4 h-4 text-slate-500" />
-            <span className="text-sm font-medium text-slate-700">智能轨道</span>
-          </div>
         </div>
         
         <div className="flex items-center gap-4">
-          {/* 显示控制复选框 */}
-          <div className="flex items-center gap-4 bg-slate-50 rounded-lg px-4 py-2 border border-slate-200">
-            <label className="flex items-center gap-2 cursor-pointer">
+          {/* 搜索框 - 右上角功能区 */}
+          <div className="relative" ref={searchRef}>
+            <div className={`flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg transition-all duration-300 ${
+              isSearchActive ? 'ring-2 ring-amber-500 bg-white shadow-md' : ''
+            }`}>
+              <Search className="w-4 h-4 text-slate-500" />
               <input
-                type="checkbox"
-                checked={showPersons}
-                onChange={(e) => onTogglePersons?.(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                ref={inputRef}
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onFocus={handleSearchFocus}
+                placeholder="搜索人名..."
+                className="bg-transparent border-none outline-none text-sm w-48 focus:w-64 transition-all duration-300"
               />
-              <User className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-medium text-slate-700">人物</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showEvents}
-                onChange={(e) => onToggleEvents?.(e.target.checked)}
-                className="w-4 h-4 text-red-600 rounded focus:ring-2 focus:ring-red-500"
-              />
-              <MapPin className="w-4 h-4 text-slate-600" />
-              <span className="text-sm font-medium text-slate-700">事件</span>
-            </label>
+              {searchQuery && (
+                <button
+                  onClick={handleClear}
+                  className="flex items-center justify-center w-5 h-5 rounded-full hover:bg-slate-200 transition-colors"
+                >
+                  <X className="w-3 h-3 text-slate-500" />
+                </button>
+              )}
+            </div>
+            
+            {/* 下拉列表 */}
+            {showDropdown && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 z-50 max-h-64 overflow-y-auto">
+                {searchResults.map((person) => {
+                  const polityName = person.polityName || getPolityName(person.polityId);
+                  return (
+                    <button
+                      key={person.id}
+                      onClick={() => handleSelectPerson(person)}
+                      className="w-full px-4 py-3 text-left hover:bg-amber-50 transition-colors border-b border-slate-100 last:border-b-0 group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-800 group-hover:text-amber-700">
+                          {person.name}
+                        </span>
+                        <span className="text-xs text-slate-500 ml-2 group-hover:text-amber-600">
+                          - {polityName}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          
+
           <div className="flex items-center gap-3">
             <button 
               onClick={onReset}
@@ -63,14 +149,6 @@ export const ToolBar: React.FC<ToolBarProps> = ({
             >
               <Home className="w-4 h-4" />
               <span className="text-sm font-medium">重置</span>
-            </button>
-            
-            <button 
-              onClick={onSearch}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-            >
-              <Search className="w-4 h-4" />
-              <span className="text-sm font-medium">搜索</span>
             </button>
           </div>
         </div>

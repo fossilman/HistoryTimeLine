@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
 import sequelize from '../config/database.js';
-import { Civilization, Dynasty, BiogMainCore, Event } from '../models/index.js';
+import { Civilization, Dynasty, BiogMainCore } from '../models/index.js';
 
 dotenv.config();
 
@@ -13,7 +13,6 @@ const seed = async () => {
     // 清空现有数据（可选，开发环境）
     if (process.env.NODE_ENV === 'development') {
       console.log('🗑️  清空现有数据...');
-      await Event.destroy({ where: {}, force: true });
       await BiogMainCore.destroy({ where: {}, force: true });
       await Dynasty.destroy({ where: {}, force: true });
       await Civilization.destroy({ where: {}, force: true });
@@ -27,7 +26,6 @@ const seed = async () => {
       name: '华夏文明',
       startYear: -2000,
       endYear: null,
-      color: '#FFA500',
       description: '中华文明，起源于黄河流域，延续至今'
     });
     console.log('✅ 创建文明: 华夏文明');
@@ -78,49 +76,11 @@ const seed = async () => {
       console.log(`✅ 创建人物: ${personData.name}`);
     }
 
-    // 4. 创建事件 - 瞬时事件
-    const pointEventsData = [
-      { id: 'unify', name: '秦统一六国', year: -221, importance: 'high', relatedPolities: ['qin'] },
-      { id: 'wall', name: '修筑长城', year: -214, importance: 'high', relatedPolities: ['qin'] },
-      { id: 'silk', name: '丝绸之路开通', year: -130, importance: 'high', relatedPolities: ['han'] },
-      { id: 'paper', name: '蔡伦造纸', year: 105, importance: 'medium', relatedPolities: ['han'] },
-      { id: 'xuanzang', name: '玄奘西行', year: 629, importance: 'medium', relatedPolities: ['tang'] },
-      { id: 'gunpowder', name: '火药发明', year: 850, importance: 'high', relatedPolities: ['tang'] },
-      { id: 'compass', name: '指南针应用', year: 1040, importance: 'medium', relatedPolities: ['song'] },
-      { id: 'zhenghe', name: '郑和下西洋', year: 1405, importance: 'high', relatedPolities: ['ming'] }
-    ];
-
-    for (const eventData of pointEventsData) {
-      await Event.create({
-        ...eventData,
-        type: 'point',
-        description: `${eventData.name}，发生于${eventData.year < 0 ? `公元前${Math.abs(eventData.year)}` : `公元${eventData.year}`}年`
-      });
-      console.log(`✅ 创建事件: ${eventData.name}`);
-    }
-
-    // 5. 创建事件 - 持续事件
-    const durationEventsData = [
-      { id: 'warring', name: '战国时期', startYear: -475, endYear: -221, importance: 'high', relatedPolities: ['qin'] },
-      { id: 'three', name: '三国时期', startYear: 220, endYear: 280, importance: 'high', relatedPolities: ['han'] },
-      { id: 'opium', name: '鸦片战争', startYear: 1840, endYear: 1842, importance: 'high', relatedPolities: ['qing'] }
-    ];
-
-    for (const eventData of durationEventsData) {
-      await Event.create({
-        ...eventData,
-        type: 'duration',
-        description: `${eventData.name}，从${eventData.startYear < 0 ? `公元前${Math.abs(eventData.startYear)}` : `公元${eventData.startYear}`}年到${eventData.endYear < 0 ? `公元前${Math.abs(eventData.endYear)}` : `公元${eventData.endYear}`}年`
-      });
-      console.log(`✅ 创建持续事件: ${eventData.name}`);
-    }
-
     console.log('\n🎉 种子数据插入完成！');
     console.log(`📊 统计:`);
     console.log(`   - 文明: 1`);
     console.log(`   - 政权: ${politiesData.length}`);
     console.log(`   - 人物: ${personsData.length}`);
-    console.log(`   - 事件: ${pointEventsData.length + durationEventsData.length}`);
 
     process.exit(0);
   } catch (error) {
