@@ -43,9 +43,15 @@ const startServer = async () => {
     console.log('✅ 数据库连接成功');
 
     // 同步数据库模型（开发环境）
-    if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: true });
-      console.log('✅ 数据库模型已同步');
+    // 注意：使用 alter: true 可能会导致索引数量超限错误
+    // 建议使用手动迁移脚本管理表结构
+    if (process.env.NODE_ENV === 'development' && process.env.SYNC_DB === 'true') {
+      // 只同步，不修改表结构（避免索引超限）
+      await sequelize.sync({ alter: false });
+      console.log('✅ 数据库模型已同步（仅检查，不修改表结构）');
+      console.log('💡 提示：如需修改表结构，请使用迁移脚本');
+    } else {
+      console.log('💡 数据库同步已禁用，使用迁移脚本管理表结构');
     }
 
     app.listen(PORT, () => {

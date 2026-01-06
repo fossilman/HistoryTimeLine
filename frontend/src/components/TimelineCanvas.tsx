@@ -12,6 +12,34 @@ const hexToRgba = (hex: string, alpha: number): string => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
+// 莫兰迪色系配色方案（低饱和度、柔和的颜色）
+const morandiColors = [
+  '#A8B5A0', // 灰绿色
+  '#B5A8A0', // 灰棕色
+  '#A8A0B5', // 灰紫色
+  '#B5A0A8', // 灰粉色
+  '#A0A8B5', // 灰蓝色
+  '#A0B5A8', // 灰青色
+  '#C4B5A0', // 米色
+  '#B5C4A0', // 淡绿色
+  '#A0B5C4', // 淡蓝色
+  '#C4A0B5', // 淡紫色
+  '#A8C4B5', // 薄荷绿
+  '#B5A8C4', // 淡紫灰
+  '#C4B5A8', // 卡其色
+  '#A0C4B5', // 青灰色
+  '#B5C4A8', // 橄榄绿
+  '#C4A8B5', // 玫瑰灰
+];
+
+// 根据朝代ID生成稳定的莫兰迪色
+const getMorandiColor = (polityId: string): string => {
+  // 将ID转换为数字，用于选择颜色
+  const idNum = parseInt(polityId) || 0;
+  const colorIndex = idNum % morandiColors.length;
+  return morandiColors[colorIndex];
+};
+
 interface TimelineCanvasProps {
   width: number;
   height: number;
@@ -20,9 +48,11 @@ interface TimelineCanvasProps {
   civilizations: Civilization[];
   polities: Polity[];
   persons: Person[];
-  showPersons?: boolean;
   onItemHover?: (item: { type: string; data: any } | null) => void;
   matchedPerson?: Person | null;
+  expandedPolityId?: string | null; // 展开的朝代ID
+  childPolities?: Polity[]; // 子朝代列表
+  onPolityClick?: (polity: Polity) => void; // 点击朝代时的回调
 }
 
 export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
@@ -33,19 +63,33 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
   civilizations,
   polities,
   persons,
-  showPersons = true,
   onItemHover,
-  matchedPerson
+  matchedPerson,
+  expandedPolityId = null,
+  childPolities = [],
+  onPolityClick
 }) => {
   const yearSpan = endYear - startYear;
 
-  // 分配政权轨道
+  // 分配政权轨道（只分配Level0朝代，子朝代不参与轨道分配）
+  // Level0 朝代可以相互覆盖，所以都使用轨道 0
   const polityItems = polities.map(p => ({
     id: p.id,
     start: p.startYear,
     end: p.endYear
   }));
-  const polityTracks = assignTracks(polityItems);
+  
+  // Level0 朝代可以相互覆盖，所以都分配到轨道 0
+  const polityTracks = useMemo(() => {
+    const assignments: { [key: string]: number } = {};
+    polities.forEach(p => {
+      assignments[p.id] = 0; // 所有 Level0 朝代都使用轨道 0，允许相互覆盖
+    });
+    return {
+      assignments,
+      trackCount: 1 // 只有一个轨道，所有朝代都在这个轨道上
+    };
+  }, [polities]);
 
   // 分配人物轨道
   const personItems = persons.map(p => ({
@@ -83,31 +127,7 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
     return ranges;
   }, [civilizations, polities, polityTracks]);
 
-  // 计算每个政权包含的所有人物占用的轨道范围（用于计算政权层高度）
-  const polityTrackRanges = useMemo(() => {
-    const ranges: { [polityId: string]: { minTrack: number; maxTrack: number } } = {};
-    polities.forEach(polity => {
-      const polityPersons = persons.filter(p => p.polityId === polity.id);
-      
-      const trackIndices: number[] = [];
-      polityPersons.forEach(p => {
-        const trackIdx = personTracks.assignments[p.id];
-        if (trackIdx !== undefined) {
-          trackIndices.push(trackIdx);
-        }
-      });
-      
-      if (trackIndices.length === 0) {
-        // 没有相关人物，使用默认高度（单轨道）
-        ranges[polity.id] = { minTrack: 0, maxTrack: 0 };
-      } else {
-        const minTrack = Math.min(...trackIndices);
-        const maxTrack = Math.max(...trackIndices);
-        ranges[polity.id] = { minTrack, maxTrack };
-      }
-    });
-    return ranges;
-  }, [polities, persons, personTracks]);
+  // 不再需要计算政权的人物轨道范围，因为政权层高度固定
 
   // 获取时间刻度
   const timeMarks = useMemo(() => {
@@ -139,9 +159,6 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
           const POLITY_HEIGHT = 56; // 政权条带高度 h-14
           const BOUNDARY_PADDING = 8; // 上下边界
           
-          // 计算轨道范围，确保包含所有政权
-          const trackCount = Math.max(1, trackRange.maxTrack - trackRange.minTrack + 1);
-          
           // 文明层的 top：从第一个政权的顶部开始，减去边界
           const civTop = POLITY_LAYER_TOP + trackRange.minTrack * POLITY_TRACK_SPACING - BOUNDARY_PADDING;
           
@@ -158,7 +175,7 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
           return (
             <div
               key={civ.id}
-              className="absolute transition-all duration-300 overflow-hidden"
+              className="absolute transition-all duration-300 overflow-hidden cursor-pointer hover:bg-opacity-20"
               style={{
                 left: `${x1}px`,
                 width: `${x2 - x1}px`,
@@ -166,6 +183,10 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
                 height: `${civHeight}px`,
                 background: bgColor,
                 zIndex: 0
+              }}
+              onMouseEnter={() => onItemHover?.({ type: 'civilization', data: civ })}
+              onMouseLeave={() => {
+                // 不清除选中状态，保持显示
               }}
             >
               {/* 文明层名称 - 水印方式显示，永久展示 */}
@@ -213,13 +234,10 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
       <div className="absolute left-0 right-0 top-32" style={{ zIndex: 10 }}>
         {polities.map((polity) => {
           // 检查政权是否与时间窗口有重叠
-          if (polity.endYear < startYear || polity.startYear > endYear) {
+          if (!polity || polity.endYear < startYear || polity.startYear > endYear) {
             // 完全在时间窗口外，不显示
             return null;
           }
-          
-          const trackRange = polityTrackRanges[polity.id];
-          if (!trackRange) return null;
           
           // 计算可见部分的坐标
           const x1 = yearToPixel(Math.max(polity.startYear, startYear), startYear, endYear, width);
@@ -228,30 +246,24 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
           
           const trackIndex = polityTracks.assignments[polity.id];
           
-          // 计算政权层的高度：根据其相关人物和事件的轨道范围
-          const POLITY_BASE_HEIGHT = 56; // 政权基础高度 h-14
-          const POLITY_TRACK_SPACING = 64; // 政权轨道间距
-          const PERSON_TRACK_SPACING = 40; // 人物轨道间距
-          const BOUNDARY_PADDING = 8; // 上下边界
-          
-          // 人物和事件层的起始位置
-          const personEventLayerTop = 32 + polityTracks.trackCount * POLITY_TRACK_SPACING + 32;
-          
-          // 计算政权层的高度
-          let polityHeight = POLITY_BASE_HEIGHT;
-          const trackCount = trackRange.maxTrack - trackRange.minTrack + 1;
-          if (trackCount > 0 && yearSpan <= 300) {
-            // 有相关人物或事件，且人物/事件层可见时，延伸到人物/事件层
-            const polityTop = 32 + trackIndex * POLITY_TRACK_SPACING;
-            const personEventTop = personEventLayerTop + trackRange.minTrack * PERSON_TRACK_SPACING;
-            const personEventBottom = personEventLayerTop + (trackRange.maxTrack + 1) * PERSON_TRACK_SPACING;
-            // 政权层应该从当前位置延伸到人物/事件层的底部
-            const calculatedHeight = personEventBottom + BOUNDARY_PADDING - polityTop;
-            polityHeight = Math.max(POLITY_BASE_HEIGHT, calculatedHeight);
+          // 如果 trackIndex 未定义，跳过渲染
+          if (trackIndex === undefined || trackIndex === null) {
+            return null;
           }
           
-          // 将 HEX 颜色转换为 rgba，设置透明度为 70%
-          const bgColor = hexToRgba(polity.color, 0.7);
+          // 政权层的基础高度
+          const POLITY_BASE_HEIGHT = 56; // 政权基础高度 h-14
+          const isExpanded = expandedPolityId === polity.id;
+          const hasChildren = childPolities.length > 0 && isExpanded;
+          
+          // 如果展开，增加高度以容纳子朝代（列表形式）
+          const polityHeight = hasChildren 
+            ? POLITY_BASE_HEIGHT + childPolities.length * 36 + 16 // 子朝代列表高度：每个32px + 间距4px
+            : POLITY_BASE_HEIGHT;
+          
+          // 使用莫兰迪色系自动配色
+          const morandiColor = getMorandiColor(polity.id);
+          const bgColor = hexToRgba(morandiColor, 0.7);
           
           // 检查是否应该显示红点标记（匹配的人物属于这个政权）
           const shouldShowMarker = matchedPerson && matchedPerson.polityId === polity.id;
@@ -260,10 +272,15 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
             ? yearToPixel(matchedPerson.birthYear, startYear, endYear, width)
             : null;
 
+          // 判断是否可以展开（有子集）
+          const canExpand = polity.hasChild === 1;
+          
           return (
             <div
               key={polity.id}
-              className="absolute rounded-lg shadow-md cursor-pointer hover:shadow-xl transition-all hover:scale-105"
+              className={`absolute rounded-lg shadow-md transition-all ${
+                canExpand ? 'cursor-pointer hover:shadow-xl hover:scale-[1.02]' : 'cursor-default'
+              }`}
               style={{
                 left: `${x1}px`,
                 width: `${widthPx}px`,
@@ -275,12 +292,58 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
               }}
               onMouseEnter={() => onItemHover?.({ type: 'polity', data: polity })}
               onMouseLeave={() => onItemHover?.(null)}
+              onClick={() => {
+                // 只有有子集的朝代才能展开
+                if (canExpand) {
+                  onPolityClick?.(polity);
+                }
+              }}
             >
-              <div className="flex items-center justify-center h-full px-3">
+              {/* 主朝代名称 - 去除展开按钮，点击整个块即可展开 */}
+              <div className="flex items-center justify-center h-14 px-3">
                 <span className="text-white font-bold text-sm drop-shadow-lg">
                   {polity.name}
                 </span>
               </div>
+              
+              {/* 展开时显示子朝代 - 列表形式，按 sort 排序 */}
+              {hasChildren && (
+                <div className="px-2 pb-2">
+                  <div className="space-y-1">
+                    {childPolities
+                      .sort((a, b) => (a.sort || 0) - (b.sort || 0)) // 按 sort 排序
+                      .map((childPolity) => {
+                        return (
+                          <div
+                            key={childPolity.id}
+                            className="rounded shadow-sm cursor-pointer hover:shadow-md transition-all"
+                            style={{
+                              height: '32px',
+                              backgroundColor: hexToRgba(getMorandiColor(childPolity.id), 0.6),
+                              border: '1px solid rgba(255,255,255,0.4)',
+                              zIndex: 11
+                            }}
+                            onMouseEnter={() => onItemHover?.({ type: 'polity', data: childPolity })}
+                            onMouseLeave={() => onItemHover?.(null)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onItemHover?.({ type: 'polity', data: childPolity });
+                            }}
+                          >
+                            <div className="flex items-center justify-between h-full px-3">
+                              <span className="text-white font-medium text-xs drop-shadow-md">
+                                {childPolity.name}
+                              </span>
+                              <span className="text-white text-xs opacity-75">
+                                {childPolity.startYear}-{childPolity.endYear}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
               
               {/* 红点标记 - 显示在匹配人物的出生年位置 */}
               {shouldShowMarker && markerX !== null && markerX >= 0 && markerX <= width && markerX >= x1 && markerX <= x1 + widthPx && (
@@ -305,76 +368,73 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
         })}
       </div>
 
-      {/* 人物层 - 视窗小于等于300年时显示，支持渐入渐出，Z轴在政权层之上 */}
-      <div 
-        className="absolute left-0 right-0" 
-        style={{ 
-          top: `${32 + polityTracks.trackCount * 64 + 32}px`,
-          zIndex: 20
-        }}
-      >
-        {persons.map((person) => {
-          // 计算人物在时间轴上的位置（使用出生年）
-          const birthX = yearToPixel(Math.max(person.birthYear, startYear), startYear, endYear, width);
-          const deathX = yearToPixel(Math.min(person.deathYear, endYear), startYear, endYear, width);
-          
-          // 检查人物是否在可见范围内
-          if (birthX < 0 && deathX < 0) return null;
-          if (birthX > width && deathX > width) return null;
-          if (person.birthYear > endYear || person.deathYear < startYear) return null;
-          
-          const trackIndex = personTracks.assignments[person.id];
-          
-          // 根据视窗大小和复选框状态决定是否显示
-          const shouldShow = yearSpan <= 300 && showPersons;
-          
-          // 根据姓名长度计算条带宽度（每个字符约8px，加上padding）
-          const nameWidth = person.name.length * 8 + 24; // 8px per char + 24px padding
-          const minWidth = 60; // 最小宽度（仅显示姓名）
-          const barWidth = Math.max(minWidth, Math.min(150, nameWidth));
-          
-          // 展开后的宽度：从出生年到死亡年的完整时间跨度
-          const expandedWidth = Math.max(barWidth, deathX - birthX);
-          
-          // 条带的起始位置：从出生年开始
-          const barLeft = birthX;
-          
-          return (
-            <div
-              key={person.id}
-              className={`absolute h-9 rounded-full cursor-pointer hover:shadow-lg transition-all duration-300 ease-in-out group person-bar ${
-                shouldShow ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'
-              }`}
-              style={{
-                left: `${barLeft}px`, // 从出生年位置开始
-                width: `${barWidth}px`,
-                top: `${trackIndex * 40}px`,
-                background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
-                border: '2px solid white',
-                transition: 'width 0.3s ease-in-out, box-shadow 0.3s ease-in-out'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.width = `${expandedWidth}px`;
-                onItemHover?.({ type: 'person', data: person });
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.width = `${barWidth}px`;
-                onItemHover?.(null);
-              }}
-            >
-              <div className="flex items-center h-full px-3 w-full overflow-hidden">
-                <span className="text-white text-xs font-semibold whitespace-nowrap flex-shrink-0">
-                  {person.name}
-                </span>
-                {/* 悬停时显示的时间跨度 */}
-                <span className="text-white text-xs font-medium whitespace-nowrap ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-shrink-0">
-                  ({person.birthYear}-{person.deathYear})
-                </span>
+      {/* 人物层 - 仅搜索时显示，Z轴在政权层之上 */}
+      {persons.length > 0 && (
+        <div 
+          className="absolute left-0 right-0" 
+          style={{ 
+            top: `${32 + polityTracks.trackCount * 64 + 32}px`,
+            zIndex: 20
+          }}
+        >
+          {persons.map((person) => {
+            // 计算人物在时间轴上的位置（使用出生年）
+            const birthX = yearToPixel(Math.max(person.birthYear, startYear), startYear, endYear, width);
+            const deathX = yearToPixel(Math.min(person.deathYear, endYear), startYear, endYear, width);
+            
+            // 检查人物是否在可见范围内
+            if (birthX < 0 && deathX < 0) return null;
+            if (birthX > width && deathX > width) return null;
+            if (person.birthYear > endYear || person.deathYear < startYear) return null;
+            
+            const trackIndex = personTracks.assignments[person.id];
+            
+            // 根据姓名长度计算条带宽度（每个字符约8px，加上padding）
+            const nameWidth = person.name.length * 8 + 24; // 8px per char + 24px padding
+            const minWidth = 60; // 最小宽度（仅显示姓名）
+            const barWidth = Math.max(minWidth, Math.min(150, nameWidth));
+            
+            // 展开后的宽度：从出生年到死亡年的完整时间跨度
+            const expandedWidth = Math.max(barWidth, deathX - birthX);
+            
+            // 条带的起始位置：从出生年开始
+            const barLeft = birthX;
+            
+            return (
+              <div
+                key={person.id}
+                className="absolute h-9 rounded-full cursor-pointer hover:shadow-lg transition-all duration-300 ease-in-out group person-bar opacity-100 scale-100"
+                style={{
+                  left: `${barLeft}px`, // 从出生年位置开始
+                  width: `${barWidth}px`,
+                  top: `${trackIndex * 40}px`,
+                  background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
+                  border: '2px solid white',
+                  transition: 'width 0.3s ease-in-out, box-shadow 0.3s ease-in-out'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.width = `${expandedWidth}px`;
+                  onItemHover?.({ type: 'person', data: person });
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.width = `${barWidth}px`;
+                  onItemHover?.(null);
+                }}
+              >
+                <div className="flex items-center h-full px-3 w-full overflow-hidden">
+                  <span className="text-white text-xs font-semibold whitespace-nowrap flex-shrink-0">
+                    {person.name}
+                  </span>
+                  {/* 悬停时显示的时间跨度 */}
+                  <span className="text-white text-xs font-medium whitespace-nowrap ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-shrink-0">
+                    ({person.birthYear}-{person.deathYear})
+                  </span>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
     </div>
   );

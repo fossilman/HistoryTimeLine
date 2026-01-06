@@ -59,8 +59,6 @@ export function dateToYear(date: Date): number {
  */
 function dateToYearPrecise(date: Date): number {
   const year = date.getFullYear();
-  const month = date.getMonth(); // 0-11
-  const day = date.getDate();
   
   // 计算该日期在一年中的实际天数
   // 使用该年1月1日作为基准

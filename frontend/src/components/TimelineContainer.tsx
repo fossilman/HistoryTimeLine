@@ -21,27 +21,30 @@ export const TimelineContainer: React.FC = () => {
   const { zoomScale, centerYear, startYear, endYear, viewportSpan, isDragging } = useSelector(
     (state: RootState) => state.timeline
   );
-  const { civilizations, polities, persons, loading } = useSelector(
+  const { civilizations, polities, persons } = useSelector(
     (state: RootState) => state.data
   );
 
   const [hoveredItem, setHoveredItem] = useState<{ type: string; data: Polity | Person } | null>(null);
   const [zoomHint, setZoomHint] = useState<string | null>(null);
-  const [showPersons] = useState(false); // 默认不显示人物，仅搜索时显示
-  const [searchQuery, setSearchQuery] = useState('');
   const [matchedPerson, setMatchedPerson] = useState<Person | null>(null);
   const [searchResults, setSearchResults] = useState<Person[]>([]);
+  const [showNoResults, setShowNoResults] = useState(false);
+  const [expandedPolityId, setExpandedPolityId] = useState<string | null>(null);
+  const [childPolities, setChildPolities] = useState<Polity[]>([]);
+  const [selectedPolity, setSelectedPolity] = useState<Polity | null>(null);
+  const [selectedCivilization, setSelectedCivilization] = useState<any | null>(null);
+  const [level0Polities, setLevel0Polities] = useState<Polity[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const lastXRef = useRef(0);
-  const hintTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hintTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastFetchParamsRef = useRef<{ startYear: number; endYear: number; viewportSpan: number } | null>(null);
   const [containerSize, setContainerSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const animationFrameRef = useRef<number | null>(null);
   const isAnimatingRef = useRef(false);
 
-  const yearSpan = viewportSpan;
 
   // 监听窗口大小变化，实现全屏
   useEffect(() => {
@@ -86,14 +89,9 @@ export const TimelineContainer: React.FC = () => {
       return [];
     }
     
-    // 检查视窗跨度
-    if (yearSpan > 300) {
-      return [];
-    }
-    
-    // 返回要显示的人物
+    // 返回要显示的人物（不再检查视窗跨度）
     return [personToShow];
-  }, [persons, yearSpan, startYear, endYear, matchedPerson]);
+  }, [persons, startYear, endYear, matchedPerson]);
 
   // 计算轨道数量
   const polityTracks = useMemo(() => {
@@ -276,14 +274,59 @@ export const TimelineContainer: React.FC = () => {
   const handleReset = () => {
     // 重置到300-1300年，视窗跨度1000年
     dispatch(updateViewport({ centerYear: 800, zoomScale: 2 }));
-    setSearchQuery('');
     setMatchedPerson(null);
     setSearchResults([]);
+    setShowNoResults(false);
+    setExpandedPolityId(null);
+    setChildPolities([]);
+    setSelectedPolity(null);
+    setSelectedCivilization(null);
+    setLevel0Polities([]);
     // 重置后隐藏人物显示
   };
 
   const handleItemHover = (item: { type: string; data: any } | null) => {
     setHoveredItem(item);
+    
+    // 当鼠标悬停在文明或朝代上时，更新选中状态并获取Level0朝代
+    if (item?.type === 'polity') {
+      const polity = item.data as Polity;
+      setSelectedPolity(polity);
+      setSelectedCivilization(null);
+      
+      // 获取该朝代所属文明的所有Level0朝代
+      if (polity.civilizationId) {
+        timelineApi.getLevel0DynastiesByCivilization(polity.civilizationId)
+          .then(data => {
+            setLevel0Polities(data);
+          })
+          .catch(error => {
+            console.error('获取Level0朝代失败:', error);
+            setLevel0Polities([]);
+          });
+      }
+    } else if (item?.type === 'civilization') {
+      const civ = item.data;
+      setSelectedCivilization(civ);
+      setSelectedPolity(null);
+      
+      // 获取该文明的所有Level0朝代
+      if (civ.id) {
+        timelineApi.getLevel0DynastiesByCivilization(civ.id)
+          .then(data => {
+            setLevel0Polities(data);
+          })
+          .catch(error => {
+            console.error('获取Level0朝代失败:', error);
+            setLevel0Polities([]);
+          });
+      }
+    } else {
+      // 鼠标移开时不清除选中状态，保持显示
+      // setSelectedPolity(null);
+      // setSelectedCivilization(null);
+      // setLevel0Polities([]);
+    }
   };
 
   // 平滑缩放动画函数 - 模拟鼠标滚轮效果
@@ -292,7 +335,6 @@ export const TimelineContainer: React.FC = () => {
     
     isAnimatingRef.current = true;
     const startCenterYear = centerYear;
-    const startViewportSpan = viewportSpan;
     const startScale = zoomScale;
     
     // 计算目标缩放比例
@@ -327,10 +369,39 @@ export const TimelineContainer: React.FC = () => {
     animationFrameRef.current = requestAnimationFrame(animate);
   }, [centerYear, viewportSpan, zoomScale, dispatch]);
 
-  // 检查字符串是否包含中文字符
-  const containsChinese = (str: string): boolean => {
-    return /[\u4e00-\u9fa5]/.test(str);
-  };
+  // 处理朝代点击（展开/收起）
+  const handlePolityClick = useCallback(async (polity: Polity) => {
+    if (expandedPolityId === polity.id) {
+      // 收起
+      setExpandedPolityId(null);
+      setChildPolities([]);
+    } else {
+      // 展开
+      setExpandedPolityId(polity.id);
+      
+      // 获取子朝代
+      try {
+        const children = await timelineApi.getChildDynasties(polity.id);
+        setChildPolities(children);
+      } catch (error) {
+        console.error('获取子朝代失败:', error);
+        setChildPolities([]);
+      }
+    }
+  }, [expandedPolityId]);
+
+  // 处理快速定位到朝代
+  const handleQuickLocate = useCallback((polity: Polity) => {
+    setSelectedPolity(polity);
+    setSelectedCivilization(null);
+    
+    // 计算目标中心年份（朝代的中间年份）
+    const centerYear = (polity.startYear + polity.endYear) / 2;
+    const targetViewportSpan = Math.max(50, (polity.endYear - polity.startYear) * 1.5); // 视窗跨度略大于朝代跨度
+    
+    // 执行平滑缩放动画
+    animateZoomToTarget(centerYear, targetViewportSpan);
+  }, [animateZoomToTarget]);
 
   // 提取中文字符
   const extractChinese = (str: string): string => {
@@ -339,7 +410,7 @@ export const TimelineContainer: React.FC = () => {
 
   // 处理搜索 - 返回多个结果
   const handleSearch = useCallback(async (query: string) => {
-    setSearchQuery(query);
+    setShowNoResults(false);
     
     if (!query.trim()) {
       setSearchResults([]);
@@ -355,38 +426,40 @@ export const TimelineContainer: React.FC = () => {
       return;
     }
     
+    // 先尝试在当前的 persons 中搜索（仅匹配中文名，精确匹配）
+    const localResults = persons.filter(p => 
+      p.name && p.name === chineseOnly
+    );
+    
+    // 如果本地有结果，直接使用
+    if (localResults.length > 0) {
+      setSearchResults(localResults.slice(0, 10));
+      setShowNoResults(false);
+      return;
+    }
+    
+    // 如果本地没有结果，调用 API 搜索
     try {
-      // 先尝试在当前的 persons 中搜索（仅匹配中文名，模糊匹配）
-      const localResults = persons.filter(p => 
-        p.name && p.name.includes(chineseOnly)
-      );
-      
-      let allResults: Person[] = [];
-      
-      // 如果本地有结果，使用本地结果
-      if (localResults.length > 0) {
-        allResults = localResults;
+      const apiResults = await timelineApi.searchPerson(chineseOnly);
+      if (apiResults && apiResults.length > 0) {
+        setSearchResults(apiResults.slice(0, 10));
+        setShowNoResults(false);
       } else {
-        // 如果本地没有结果，调用 API 搜索（只传递中文字符）
-        const apiResults = await timelineApi.searchPerson(chineseOnly);
-        if (apiResults && apiResults.length > 0) {
-          allResults = apiResults;
-        }
+        setSearchResults([]);
+        setShowNoResults(true);
       }
-      
-      // 限制最多显示10个结果
-      setSearchResults(allResults.slice(0, 10));
     } catch (error) {
       console.error('搜索失败:', error);
       setSearchResults([]);
+      setShowNoResults(true);
     }
   }, [persons]);
 
   // 处理选择人物 - 只有选择后才定位
   const handleSelectPerson = useCallback((person: Person) => {
     setMatchedPerson(person);
-    setSearchQuery('');
     setSearchResults([]);
+    setShowNoResults(false);
     
     // 计算目标中心年份（使用人物的出生年）
     const targetCenterYear = person.birthYear;
@@ -411,11 +484,16 @@ export const TimelineContainer: React.FC = () => {
         onReset={handleReset}
         onSearch={handleSearch}
         onSelectPerson={handleSelectPerson}
-        searchResults={searchResults.map(person => ({
-          ...person,
-          polityName: polities.find(p => p.id === person.polityId)?.name
-        }))}
+        searchResults={searchResults.map(person => {
+          // 优先使用后端返回的 polityName，如果后端没有返回，才从 polities 数组中查找
+          const polityName = person.polityName || polities.find(p => p.id === person.polityId)?.name;
+          return {
+            ...person,
+            polityName: polityName
+          };
+        })}
         polities={polities}
+        showNoResults={showNoResults}
       />
       
       <ScaleBar 
@@ -424,6 +502,10 @@ export const TimelineContainer: React.FC = () => {
         viewportSpan={viewportSpan}
         polityTrackCount={polityTracks.trackCount}
         personTrackCount={personTracks.trackCount}
+        selectedCivilization={selectedCivilization}
+        selectedPolity={selectedPolity}
+        level0Polities={level0Polities}
+        onPolityClick={handleQuickLocate}
       />
 
       {/* 时间轴主区域 - 全屏展示 */}
@@ -445,12 +527,12 @@ export const TimelineContainer: React.FC = () => {
             endYear={endYear}
             civilizations={civilizations}
             polities={visiblePolities}
-            allPolities={polities}
-            polityTracks={polityTracks}
             persons={visiblePersons}
-            showPersons={showPersons}
             onItemHover={handleItemHover}
             matchedPerson={matchedPerson}
+            expandedPolityId={expandedPolityId}
+            childPolities={childPolities}
+            onPolityClick={handlePolityClick}
           />
 
         </div>
@@ -464,6 +546,7 @@ export const TimelineContainer: React.FC = () => {
       )}
 
       <DetailPanel item={hoveredItem} />
+      
     </div>
   );
 };

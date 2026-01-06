@@ -13,6 +13,10 @@ export interface Polity {
   endYear: number;
   color: string;
   importance: 'high' | 'medium' | 'low';
+  cLevel?: number; // 层级：0=Level0, 1=Level1
+  parentId?: number | null; // 父朝代ID，null表示Level0层级
+  hasChild?: number; // 是否有子集：0=没有，1=有，控制是否有展开按钮
+  sort?: number; // 排序字段
 }
 
 export interface Person {
@@ -21,6 +25,7 @@ export interface Person {
   birthYear: number;
   deathYear: number;
   polityId: string;
+  polityName?: string; // 朝代名称（可选，搜索时由后端返回）
   importance: 'high' | 'medium' | 'low';
   title?: string;
 }

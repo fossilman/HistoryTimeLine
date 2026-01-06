@@ -12,6 +12,7 @@ interface ToolBarProps {
   onSelectPerson?: (person: Person) => void;
   searchResults?: SearchResult[];
   polities?: Polity[];
+  showNoResults?: boolean;
 }
 
 export const ToolBar: React.FC<ToolBarProps> = ({ 
@@ -19,7 +20,8 @@ export const ToolBar: React.FC<ToolBarProps> = ({
   onSearch,
   onSelectPerson,
   searchResults = [],
-  polities = []
+  polities = [],
+  showNoResults = false
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -42,9 +44,21 @@ export const ToolBar: React.FC<ToolBarProps> = ({
     };
   }, []);
 
+  // 当搜索结果变化时，自动显示下拉列表或"没有数据"提示
+  useEffect(() => {
+    if (searchQuery.trim().length > 0) {
+      if (searchResults.length > 0) {
+        setShowDropdown(true);
+      } else if (showNoResults) {
+        setShowDropdown(false);
+      }
+    }
+  }, [searchResults, searchQuery, showNoResults]);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
+    // 只有在有结果时才显示下拉列表
     setShowDropdown(query.trim().length > 0 && searchResults.length > 0);
     if (onSearch) {
       onSearch(query);
@@ -120,7 +134,18 @@ export const ToolBar: React.FC<ToolBarProps> = ({
             {showDropdown && searchResults.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 z-50 max-h-64 overflow-y-auto">
                 {searchResults.map((person) => {
-                  const polityName = person.polityName || getPolityName(person.polityId);
+                  // 优先使用后端返回的 polityName
+                  let polityName = person.polityName;
+                  
+                  // 如果后端返回的 polityName 为空（null/undefined/空字符串），且有 polityId，尝试从 polities 数组中查找
+                  if ((!polityName || (typeof polityName === 'string' && polityName.trim() === '')) && person.polityId) {
+                    polityName = getPolityName(person.polityId);
+                  }
+                  
+                  // 如果还是没有找到，显示"未知朝代"
+                  if (!polityName || (typeof polityName === 'string' && polityName.trim() === '')) {
+                    polityName = '未知朝代';
+                  }
                   return (
                     <button
                       key={person.id}
@@ -138,6 +163,13 @@ export const ToolBar: React.FC<ToolBarProps> = ({
                     </button>
                   );
                 })}
+              </div>
+            )}
+            
+            {/* 无数据提示 */}
+            {showNoResults && searchQuery.trim().length > 0 && searchResults.length === 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-slate-200 z-50 px-4 py-6 text-center">
+                <p className="text-sm text-slate-500">没有找到相关数据</p>
               </div>
             )}
           </div>

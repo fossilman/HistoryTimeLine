@@ -58,6 +58,19 @@ const Dynasty = sequelize.define('Dynasty', {
     defaultValue: 0,
     field: 'c_level',
     comment: '层级：数字小的排在上方'
+  },
+  parentId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    field: 'c_parent_id',
+    comment: '父朝代ID，NULL表示Level0层级，非NULL表示Level1层级'
+  },
+  hasChild: {
+    type: DataTypes.TINYINT,
+    allowNull: false,
+    defaultValue: 0,
+    field: 'c_has_child',
+    comment: '是否有子集：0=没有，1=有，控制是否有展开按钮'
   }
 }, {
   tableName: 'DYNASTIES',
@@ -68,24 +81,21 @@ const Dynasty = sequelize.define('Dynasty', {
       fields: ['c_start', 'c_end']
     },
     {
-      name: 'idx_sort',
-      fields: ['c_sort']
-    },
-    {
       name: 'idx_civilization_id',
       fields: ['civilization_id']
     },
+    // 合并常用查询的复合索引，减少索引数量
     {
-      name: 'idx_status',
-      fields: ['status']
+      name: 'idx_status_level_parent',
+      fields: ['status', 'c_level', 'c_parent_id']
     },
     {
-      name: 'idx_level',
-      fields: ['c_level']
+      name: 'idx_status_level_has_child',
+      fields: ['status', 'c_level', 'c_has_child']
     },
     {
-      name: 'idx_status_level',
-      fields: ['status', 'c_level']
+      name: 'idx_sort',
+      fields: ['c_sort']
     }
   ]
 });
