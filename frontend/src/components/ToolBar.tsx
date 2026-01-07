@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Home, X } from 'lucide-react';
-import { Person, Polity } from '../types';
+import { Search, X } from 'lucide-react';
+import { Person, Polity, Civilization } from '../types';
+import { getMorandiColor } from './TimelineCanvas';
 
 interface SearchResult extends Person {
   polityName?: string;
@@ -13,6 +14,13 @@ interface ToolBarProps {
   searchResults?: SearchResult[];
   polities?: Polity[];
   showNoResults?: boolean;
+  // Quick navigation props
+  civilizations?: Civilization[];
+  selectedCivilization?: Civilization | null;
+  selectedPolity?: Polity | null;
+  allLevel0Polities?: Polity[];
+  onCivilizationClick?: (civilization: Civilization) => void;
+  onPolityClick?: (polity: Polity) => void;
 }
 
 export const ToolBar: React.FC<ToolBarProps> = ({ 
@@ -21,7 +29,13 @@ export const ToolBar: React.FC<ToolBarProps> = ({
   onSelectPerson,
   searchResults = [],
   polities = [],
-  showNoResults = false
+  showNoResults = false,
+  civilizations = [],
+  selectedCivilization = null,
+  selectedPolity = null,
+  allLevel0Polities = [],
+  onCivilizationClick,
+  onPolityClick
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -95,18 +109,91 @@ export const ToolBar: React.FC<ToolBarProps> = ({
     return polity?.name || '未知朝代';
   };
 
+  // 根据选中的文明过滤政权
+  const filteredPolities = selectedCivilization
+    ? allLevel0Polities.filter(polity => polity.civilizationId === selectedCivilization.id)
+    : [];
+
   return (
     <div className="bg-white border-b border-slate-200 shadow-sm">
-      <div className="max-w-full mx-auto px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-            History Timezone
-          </h1>
-        </div>
+      <div className="max-w-full mx-auto px-6 py-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 flex-1 min-w-0" style={{ overflow: 'hidden' }}>
+            <h1 
+              onClick={onReset}
+              className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0 whitespace-nowrap"
+            >
+              History Timezone
+            </h1>
+            
+            {/* 快速导航栏 - 移动到History TimeZone右边，分两层显示 */}
+            <div className="flex flex-col gap-1 flex-1 min-w-0" style={{ overflowX: 'auto', overflowY: 'visible' }}>
+              {/* 上层：文明层 */}
+              {civilizations.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <span className="text-[10px] text-slate-500 font-medium whitespace-nowrap">文明:</span>
+                  <div className="flex items-center gap-1.5" style={{ overflow: 'visible' }}>
+                    {[...civilizations].sort((a, b) => {
+                      const sortA = a.sort ?? 999999;
+                      const sortB = b.sort ?? 999999;
+                      return sortA - sortB;
+                    }).map((civ) => {
+                      const isSelected = selectedCivilization?.id === civ.id;
+                      return (
+                        <button
+                          key={civ.id}
+                          onClick={() => onCivilizationClick?.(civ)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all duration-200 hover:scale-150 hover:z-50 hover:shadow-lg whitespace-nowrap flex-shrink-0 relative ${
+                            isSelected
+                              ? 'bg-indigo-500 text-white shadow-md'
+                              : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                          }`}
+                          title={`${civ.name} (${civ.startYear}-${civ.endYear || '至今'})`}
+                        >
+                          {civ.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* 下层：政权层 - 仅显示选中文明对应的Level0政权 */}
+              {filteredPolities.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <span className="text-[10px] text-slate-500 font-medium whitespace-nowrap">政权:</span>
+                  <div className="flex items-center gap-1.5" style={{ overflow: 'visible' }}>
+                    {filteredPolities.map((polity) => {
+                      const polityColor = getMorandiColor(polity.id);
+                      const isSelected = selectedPolity?.id === polity.id;
+                      return (
+                        <button
+                          key={polity.id}
+                          onClick={() => onPolityClick?.(polity)}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-all duration-200 hover:scale-150 hover:z-50 hover:shadow-lg whitespace-nowrap flex-shrink-0 relative ${
+                            isSelected
+                              ? 'text-white shadow-md'
+                              : 'text-white hover:opacity-90'
+                          }`}
+                          style={{
+                            backgroundColor: isSelected ? polityColor : polityColor,
+                            opacity: isSelected ? 1 : 0.7
+                          }}
+                          title={`${polity.name} (${polity.startYear}-${polity.endYear})`}
+                        >
+                          {polity.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         
-        <div className="flex items-center gap-4">
-          {/* 搜索框 - 右上角功能区 */}
-          <div className="relative" ref={searchRef}>
+          <div className="flex items-center gap-4">
+            {/* 搜索框 - 右上角功能区 */}
+            <div className="relative" ref={searchRef}>
             <div className={`flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg transition-all duration-300 ${
               isSearchActive ? 'ring-2 ring-amber-500 bg-white shadow-md' : ''
             }`}>
@@ -172,16 +259,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({
                 <p className="text-sm text-slate-500">没有找到相关数据</p>
               </div>
             )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={onReset}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-            >
-              <Home className="w-4 h-4" />
-              <span className="text-sm font-medium">重置</span>
-            </button>
+            </div>
           </div>
         </div>
       </div>

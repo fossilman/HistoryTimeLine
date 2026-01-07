@@ -33,10 +33,24 @@ const morandiColors = [
 ];
 
 // 根据朝代ID生成稳定的莫兰迪色
-const getMorandiColor = (polityId: string): string => {
+export const getMorandiColor = (polityId: string): string => {
   // 将ID转换为数字，用于选择颜色
   const idNum = parseInt(polityId) || 0;
   const colorIndex = idNum % morandiColors.length;
+  return morandiColors[colorIndex];
+};
+
+// 根据文明ID生成稳定的颜色（用于文明色带）
+const getCivilizationColor = (civilizationId: string): string => {
+  // 将ID转换为数字，用于选择颜色
+  // 使用字符串哈希来确保不同ID得到不同颜色
+  let hash = 0;
+  for (let i = 0; i < civilizationId.length; i++) {
+    const char = civilizationId.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // 转换为32位整数
+  }
+  const colorIndex = Math.abs(hash) % morandiColors.length;
   return morandiColors[colorIndex];
 };
 
@@ -49,10 +63,12 @@ interface TimelineCanvasProps {
   polities: Polity[];
   persons: Person[];
   onItemHover?: (item: { type: string; data: any } | null) => void;
+  onItemClick?: (item: { type: string; data: any } | null) => void; // 点击元素时的回调
   matchedPerson?: Person | null;
   expandedPolityId?: string | null; // 展开的朝代ID
   childPolities?: Polity[]; // 子朝代列表
-  onPolityClick?: (polity: Polity) => void; // 点击朝代时的回调
+  onPolityClick?: (polity: Polity) => void; // 点击朝代时的回调（用于展开）
+  containerHeight?: number; // 容器总高度，用于计算压缩比例
 }
 
 export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
@@ -64,32 +80,132 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
   polities,
   persons,
   onItemHover,
+  onItemClick,
   matchedPerson,
   expandedPolityId = null,
   childPolities = [],
-  onPolityClick
+  onPolityClick,
+  containerHeight
 }) => {
   const yearSpan = endYear - startYear;
 
-  // 分配政权轨道（只分配Level0朝代，子朝代不参与轨道分配）
-  // Level0 朝代可以相互覆盖，所以都使用轨道 0
-  const polityItems = polities.map(p => ({
-    id: p.id,
-    start: p.startYear,
-    end: p.endYear
-  }));
-  
-  // Level0 朝代可以相互覆盖，所以都分配到轨道 0
-  const polityTracks = useMemo(() => {
-    const assignments: { [key: string]: number } = {};
-    polities.forEach(p => {
-      assignments[p.id] = 0; // 所有 Level0 朝代都使用轨道 0，允许相互覆盖
+  // 基础尺寸常量
+  const BASE_POLITY_TRACK_SPACING = 80; // 政权轨道间距（进一步增加，充分利用空间）
+  const BASE_POLITY_HEIGHT = 72; // 政权条带高度（进一步增加，充分利用空间）
+  const BASE_BOUNDARY_PADDING = 12; // 上下边界（减小留白）
+  const POLITY_LAYER_TOP = 60; // 政权层容器起始位置（进一步减小留白）
+  const TIME_SCALE_HEIGHT = 40; // 时间刻度区域高度（从64减小到40）
+
+  // 计算压缩比例：根据容器高度动态调整
+  const scaleFactor = useMemo(() => {
+    if (!containerHeight) return 1;
+    
+    // 先按sort排序文明
+    const sortedCivilizations = [...civilizations].sort((a, b) => {
+      const sortA = a.sort ?? 999999;
+      const sortB = b.sort ?? 999999;
+      return sortA - sortB;
     });
+    
+    // 计算所需的总高度（未压缩）
+    let totalRequiredHeight = POLITY_LAYER_TOP;
+    sortedCivilizations.forEach(civ => {
+      const civPolities = polities.filter(p => p.civilizationId === civ.id);
+      if (civPolities.length > 0) {
+        const polityItems = civPolities.map(p => ({
+          id: p.id,
+          start: p.startYear,
+          end: p.endYear
+        }));
+        const trackResult = assignTracks(polityItems);
+        const trackCount = trackResult.trackCount || 1;
+        totalRequiredHeight += trackCount * BASE_POLITY_TRACK_SPACING + BASE_BOUNDARY_PADDING;
+      } else {
+        totalRequiredHeight += BASE_POLITY_HEIGHT + BASE_BOUNDARY_PADDING;
+      }
+    });
+    totalRequiredHeight += 16; // 底部边距（减小留白）
+    
+    // 可用高度 = 容器高度 - 顶部工具栏（包含快速定位栏）- 底部栏 - 时间刻度
+    // 充分利用所有可用空间，减少不必要的留白
+    const availableHeight = containerHeight - 136 - 48 - TIME_SCALE_HEIGHT; // 136是工具栏（包含快速定位栏），48是底部栏，TIME_SCALE_HEIGHT是时间刻度
+    if (totalRequiredHeight > availableHeight && availableHeight > 0) {
+      const factor = availableHeight / totalRequiredHeight;
+      // 确保最小缩放比例，避免太小
+      return Math.max(0.3, Math.min(1, factor));
+    }
+    return 1;
+  }, [civilizations, polities, containerHeight]);
+
+  // 应用压缩比例后的尺寸
+  const POLITY_TRACK_SPACING = BASE_POLITY_TRACK_SPACING * scaleFactor;
+  const POLITY_HEIGHT = BASE_POLITY_HEIGHT * scaleFactor;
+  const BOUNDARY_PADDING = BASE_BOUNDARY_PADDING * scaleFactor;
+
+  // 为每个文明分配独立的轨道（文明之间不重叠）
+  // 同时为每个文明内部的政权分配轨道（政权之间可以重叠）
+  const { civilizationTracks, polityTracks, civilizationHeights } = useMemo(() => {
+    // 先按sort排序文明
+    const sortedCivilizations = [...civilizations].sort((a, b) => {
+      const sortA = a.sort ?? 999999;
+      const sortB = b.sort ?? 999999;
+      return sortA - sortB;
+    });
+    
+    // 1. 为文明分配轨道（文明之间不重叠）
+    const civItems = sortedCivilizations.map(civ => {
+      const civPolities = polities.filter(p => p.civilizationId === civ.id);
+      if (civPolities.length === 0) {
+        return { id: civ.id, start: civ.startYear, end: civ.endYear || civ.startYear };
+      }
+      const minYear = Math.min(...civPolities.map(p => p.startYear));
+      const maxYear = Math.max(...civPolities.map(p => p.endYear));
+      return { id: civ.id, start: minYear, end: maxYear };
+    });
+    const civTrackResult = assignTracks(civItems);
+    
+    // 2. 为每个文明内部的政权分配轨道（每个文明独立分配）
+    const polityAssignments: { [key: string]: number } = {};
+    const civHeights: { [civId: string]: number } = {};
+    
+    sortedCivilizations.forEach(civ => {
+      const civPolities = polities.filter(p => p.civilizationId === civ.id);
+      if (civPolities.length === 0) {
+        civHeights[civ.id] = (BASE_POLITY_HEIGHT + BASE_BOUNDARY_PADDING) * scaleFactor; // 默认高度（应用压缩）
+        return;
+      }
+      
+      // 为这个文明内部的政权分配轨道
+      const polityItems = civPolities.map(p => ({
+        id: p.id,
+        start: p.startYear,
+        end: p.endYear
+      }));
+      const polityTrackResult = assignTracks(polityItems);
+      
+      // 保存这个文明内部政权的轨道分配
+      Object.assign(polityAssignments, polityTrackResult.assignments);
+      
+      // 计算这个文明的高度：根据其内部政权占用的轨道数（已应用压缩比例）
+      const civTrackCount = polityTrackResult.trackCount || 1;
+      civHeights[civ.id] = civTrackCount * POLITY_TRACK_SPACING + BOUNDARY_PADDING;
+    });
+    
     return {
-      assignments,
-      trackCount: 1 // 只有一个轨道，所有朝代都在这个轨道上
+      civilizationTracks: civTrackResult,
+      polityTracks: { assignments: polityAssignments, trackCount: Math.max(...Object.values(polityAssignments).map(v => v || 0), 0) + 1 },
+      civilizationHeights: civHeights
     };
-  }, [polities]);
+  }, [civilizations, polities, POLITY_TRACK_SPACING, BOUNDARY_PADDING, scaleFactor]);
+  
+  // 按sort排序的文明列表（用于渲染）
+  const sortedCivilizations = useMemo(() => {
+    return [...civilizations].sort((a, b) => {
+      const sortA = a.sort ?? 999999;
+      const sortB = b.sort ?? 999999;
+      return sortA - sortB;
+    });
+  }, [civilizations]);
 
   // 分配人物轨道
   const personItems = persons.map(p => ({
@@ -99,33 +215,32 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
   }));
   const personTracks = assignTracks(personItems);
 
-  // 计算每个文明包含的所有政权占用的轨道范围（用于计算文明层高度）
-  const civilizationTrackRanges = useMemo(() => {
-    const ranges: { [civId: string]: { minTrack: number; maxTrack: number } } = {};
-    civilizations.forEach(civ => {
-      const civPolities = polities.filter(p => p.civilizationId === civ.id);
-      if (civPolities.length === 0) {
-        ranges[civ.id] = { minTrack: 0, maxTrack: 0 };
-      } else {
-        // 获取所有属于该文明的政权的轨道索引
-        const trackIndices = civPolities
-          .map(p => polityTracks.assignments[p.id])
-          .filter((idx): idx is number => idx !== undefined && idx !== null);
-        
-        if (trackIndices.length === 0) {
-          // 如果没有找到轨道索引，可能是这些政权不在当前时间范围内
-          // 但仍然需要为文明层设置一个默认范围
-          ranges[civ.id] = { minTrack: 0, maxTrack: 0 };
-        } else {
-          // 确保包含所有政权的轨道范围
-          const minTrack = Math.min(...trackIndices);
-          const maxTrack = Math.max(...trackIndices);
-          ranges[civ.id] = { minTrack, maxTrack };
-        }
-      }
+  // 计算每个文明的垂直位置（累积前面所有文明的高度）
+  const civilizationPositions = useMemo(() => {
+    const positions: { [civId: string]: { top: number; height: number } } = {};
+    let currentTop = POLITY_LAYER_TOP;
+    
+    // 按sort排序的文明列表（已经按sort排序）
+    sortedCivilizations.forEach(civ => {
+      const height = civilizationHeights[civ.id] || 64;
+      positions[civ.id] = { top: currentTop, height };
+      currentTop += height;
     });
-    return ranges;
-  }, [civilizations, polities, polityTracks]);
+    
+    return positions;
+  }, [sortedCivilizations, civilizationTracks, civilizationHeights]);
+
+  // 计算所需的最小高度，确保所有条带都能显示（已应用压缩比例）
+  const minRequiredHeight = useMemo(() => {
+    if (sortedCivilizations.length === 0) return height;
+    let totalHeight = POLITY_LAYER_TOP;
+    sortedCivilizations.forEach(civ => {
+      totalHeight += civilizationHeights[civ.id] || (BASE_POLITY_HEIGHT + BASE_BOUNDARY_PADDING) * scaleFactor;
+    });
+    // 添加一些底部边距（减小留白）
+    totalHeight += 16 * scaleFactor;
+    return Math.max(height, totalHeight);
+  }, [sortedCivilizations, civilizationHeights, height, scaleFactor]);
 
   // 不再需要计算政权的人物轨道范围，因为政权层高度固定
 
@@ -135,12 +250,12 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
   }, [startYear, endYear, yearSpan]);
 
   return (
-    <div className="relative w-full h-full" style={{ width, height }}>
+    <div className="relative w-full" style={{ width, minHeight: minRequiredHeight }}>
       {/* 文明背景层 - 永久展示，透明度10%，Z轴最底层 */}
       <div className="absolute inset-0" style={{ zIndex: 0 }}>
-        {civilizations.map(civ => {
-          const trackRange = civilizationTrackRanges[civ.id];
-          if (!trackRange) return null;
+        {sortedCivilizations.map(civ => {
+          const position = civilizationPositions[civ.id];
+          if (!position) return null;
           
           // 计算文明层的时间范围（包含所有政权）
           const civPolities = polities.filter(p => p.civilizationId === civ.id);
@@ -152,76 +267,48 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
           const x2 = Math.min(width, yearToPixel(maxYear, startYear, endYear, width));
           if (x2 <= 0 || x1 >= width) return null;
           
-          // 计算文明层的高度：根据政权轨道范围
-          // 政权层容器从 top-32 (128px) 开始，每个政权条带高度为 56px (h-14)，轨道间距为 64px
-          const POLITY_LAYER_TOP = 128; // 政权层容器起始位置（top-32 = 8rem = 128px）
-          const POLITY_TRACK_SPACING = 64; // 政权轨道间距
-          const POLITY_HEIGHT = 56; // 政权条带高度 h-14
-          const BOUNDARY_PADDING = 8; // 上下边界
+          // 使用计算好的位置和高度
+          const civTop = position.top;
+          const civHeight = position.height;
           
-          // 文明层的 top：从第一个政权的顶部开始，减去边界
-          const civTop = POLITY_LAYER_TOP + trackRange.minTrack * POLITY_TRACK_SPACING - BOUNDARY_PADDING;
-          
-          // 文明层的高度：从第一个政权到最后一个政权的底部，加上边界
-          // 最后一个政权的底部 = top + height = POLITY_LAYER_TOP + maxTrack * POLITY_TRACK_SPACING + POLITY_HEIGHT
-          const lastPolityTop = POLITY_LAYER_TOP + trackRange.maxTrack * POLITY_TRACK_SPACING;
-          const lastPolityBottom = lastPolityTop + POLITY_HEIGHT;
-          const civHeight = lastPolityBottom + BOUNDARY_PADDING - civTop;
-          
-          // 使用默认颜色，设置透明度为 10%
-          const DEFAULT_CIV_COLOR = '#94a3b8'; // 默认灰色
-          const bgColor = hexToRgba(DEFAULT_CIV_COLOR, 0.1);
+          // 为每个文明分配独立的颜色，设置透明度为 10%
+          const civColor = getCivilizationColor(civ.id);
+          const bgColor = hexToRgba(civColor, 0.1);
           
           return (
             <div
               key={civ.id}
-              className="absolute transition-all duration-300 overflow-hidden cursor-pointer hover:bg-opacity-20"
+              className="absolute overflow-hidden cursor-pointer hover:bg-opacity-20"
               style={{
                 left: `${x1}px`,
                 width: `${x2 - x1}px`,
                 top: `${civTop}px`,
                 height: `${civHeight}px`,
                 background: bgColor,
-                zIndex: 0
+                zIndex: 0,
+                willChange: 'transform, left, width'
               }}
               onMouseEnter={() => onItemHover?.({ type: 'civilization', data: civ })}
               onMouseLeave={() => {
                 // 不清除选中状态，保持显示
               }}
+              onClick={() => onItemClick?.({ type: 'civilization', data: civ })}
             >
-              {/* 文明层名称 - 水印方式显示，永久展示 */}
-              <div 
-                className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                style={{
-                  transform: 'rotate(-45deg)',
-                  opacity: 0.15,
-                  fontSize: `${Math.min(48, Math.min(x2 - x1, civHeight) * 0.3)}px`,
-                  fontWeight: 'bold',
-                  color: DEFAULT_CIV_COLOR,
-                  textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
-                  userSelect: 'none',
-                  overflow: 'hidden',
-                  maxWidth: '100%',
-                  maxHeight: '100%'
-                }}
-              >
-                {civ.name}
-              </div>
             </div>
           );
         })}
       </div>
 
       {/* 时间刻度 - Z轴最上层 */}
-      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-slate-50 to-transparent border-b border-slate-200" style={{ zIndex: 30 }}>
-        <svg className="w-full h-full">
+      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-slate-50 to-transparent border-b border-slate-200" style={{ height: `${TIME_SCALE_HEIGHT}px`, zIndex: 30 }}>
+        <svg className="w-full h-full" style={{ height: `${TIME_SCALE_HEIGHT}px` }}>
           {timeMarks.map((year, i) => {
             const x = yearToPixel(year, startYear, endYear, width);
             if (x < 0 || x > width) return null;
             return (
               <g key={i}>
-                <line x1={x} y1="40" x2={x} y2="50" stroke="#94a3b8" strokeWidth="1" />
-                <text x={x} y="30" textAnchor="middle" className="text-xs fill-slate-600 font-mono">
+                <line x1={x} y1={TIME_SCALE_HEIGHT - 8} x2={x} y2={TIME_SCALE_HEIGHT - 2} stroke="#94a3b8" strokeWidth="1" />
+                <text x={x} y={TIME_SCALE_HEIGHT - 16} textAnchor="middle" className="text-xs fill-slate-600 font-mono">
                   {formatTime(year, yearSpan)}
                 </text>
               </g>
@@ -231,7 +318,7 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
       </div>
 
       {/* 政权层 - 永久展示，透明度70%，Z轴在文明层之上 */}
-      <div className="absolute left-0 right-0 top-32" style={{ zIndex: 10 }}>
+      <div className="absolute left-0 right-0" style={{ zIndex: 10 }}>
         {polities.map((polity) => {
           // 检查政权是否与时间窗口有重叠
           if (!polity || polity.endYear < startYear || polity.startYear > endYear) {
@@ -251,15 +338,25 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
             return null;
           }
           
-          // 政权层的基础高度
-          const POLITY_BASE_HEIGHT = 56; // 政权基础高度 h-14
+          // 获取政权所属文明的位置
+          const civPosition = civilizationPositions[polity.civilizationId];
+          if (!civPosition) {
+            return null;
+          }
+          
+          // 政权层的基础高度（已应用压缩比例）
+          const POLITY_BASE_HEIGHT = POLITY_HEIGHT; // 政权基础高度
           const isExpanded = expandedPolityId === polity.id;
           const hasChildren = childPolities.length > 0 && isExpanded;
           
-          // 如果展开，增加高度以容纳子朝代（列表形式）
+          // 如果展开，增加高度以容纳子朝代（列表形式，也应用压缩比例）
           const polityHeight = hasChildren 
-            ? POLITY_BASE_HEIGHT + childPolities.length * 36 + 16 // 子朝代列表高度：每个32px + 间距4px
+            ? POLITY_BASE_HEIGHT + childPolities.length * (36 * scaleFactor) + (16 * scaleFactor) // 子朝代列表高度：每个32px + 间距4px
             : POLITY_BASE_HEIGHT;
+          
+          // 计算政权相对于所属文明的垂直位置（已应用压缩比例）
+          // 政权位置 = 文明顶部 + 边界内边距 + 轨道偏移
+          const polityTop = civPosition.top + BOUNDARY_PADDING + trackIndex * POLITY_TRACK_SPACING;
           
           // 使用莫兰迪色系自动配色
           const morandiColor = getMorandiColor(polity.id);
@@ -278,30 +375,46 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
           return (
             <div
               key={polity.id}
-              className={`absolute rounded-lg shadow-md transition-all ${
-                canExpand ? 'cursor-pointer hover:shadow-xl hover:scale-[1.02]' : 'cursor-default'
+              className={`absolute rounded-lg shadow-md ${
+                canExpand ? 'cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-shadow' : 'cursor-default'
               }`}
               style={{
                 left: `${x1}px`,
                 width: `${widthPx}px`,
-                top: `${trackIndex * 64}px`,
+                top: `${polityTop}px`,
                 height: `${polityHeight}px`,
                 backgroundColor: bgColor,
                 border: '2px solid rgba(255,255,255,0.5)',
-                zIndex: 10
+                zIndex: 10,
+                willChange: 'transform, left, width'
               }}
               onMouseEnter={() => onItemHover?.({ type: 'polity', data: polity })}
               onMouseLeave={() => onItemHover?.(null)}
-              onClick={() => {
+              onClick={(e) => {
+                // 点击政权时，触发点击回调（不联动快速定位栏）
+                onItemClick?.({ type: 'polity', data: polity });
                 // 只有有子集的朝代才能展开
                 if (canExpand) {
+                  e.stopPropagation();
                   onPolityClick?.(polity);
                 }
               }}
             >
               {/* 主朝代名称 - 去除展开按钮，点击整个块即可展开 */}
-              <div className="flex items-center justify-center h-14 px-3">
-                <span className="text-white font-bold text-sm drop-shadow-lg">
+              <div className="flex items-center justify-center h-full px-3 overflow-hidden">
+                <span 
+                  className="text-white font-bold drop-shadow-lg text-center"
+                  style={{
+                    fontSize: `${Math.max(14, Math.min(20, POLITY_HEIGHT * 0.32))}px`,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '100%',
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'center'
+                  }}
+                >
                   {polity.name}
                 </span>
               </div>
@@ -327,14 +440,30 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
                             onMouseLeave={() => onItemHover?.(null)}
                             onClick={(e) => {
                               e.stopPropagation();
-                              onItemHover?.({ type: 'polity', data: childPolity });
+                              onItemClick?.({ type: 'polity', data: childPolity });
                             }}
                           >
-                            <div className="flex items-center justify-between h-full px-3">
-                              <span className="text-white font-medium text-xs drop-shadow-md">
+                            <div className="flex items-center justify-between h-full px-3 overflow-hidden">
+                              <span 
+                                className="text-white font-medium drop-shadow-md"
+                                style={{
+                                  fontSize: `${Math.max(11, Math.min(14, 32 * scaleFactor * 0.35))}px`,
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  flex: '1',
+                                  minWidth: 0
+                                }}
+                              >
                                 {childPolity.name}
                               </span>
-                              <span className="text-white text-xs opacity-75">
+                              <span 
+                                className="text-white opacity-75 flex-shrink-0 ml-2"
+                                style={{
+                                  fontSize: `${Math.max(10, Math.min(13, 32 * scaleFactor * 0.3))}px`,
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
                                 {childPolity.startYear}-{childPolity.endYear}
                               </span>
                             </div>
@@ -373,7 +502,18 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
         <div 
           className="absolute left-0 right-0" 
           style={{ 
-            top: `${32 + polityTracks.trackCount * 64 + 32}px`,
+            top: `${(() => {
+              // 计算最后一个文明的底部位置
+              const sortedCivs = [...civilizations].sort((a, b) => {
+                const trackA = civilizationTracks.assignments[a.id] || 0;
+                const trackB = civilizationTracks.assignments[b.id] || 0;
+                return trackA - trackB;
+              });
+              if (sortedCivs.length === 0) return POLITY_LAYER_TOP;
+              const lastCiv = sortedCivs[sortedCivs.length - 1];
+              const lastCivPosition = civilizationPositions[lastCiv.id];
+              return lastCivPosition ? lastCivPosition.top + lastCivPosition.height + 32 : POLITY_LAYER_TOP;
+            })()}px`,
             zIndex: 20
           }}
         >
@@ -420,6 +560,7 @@ export const TimelineCanvas: React.FC<TimelineCanvasProps> = ({
                   e.currentTarget.style.width = `${barWidth}px`;
                   onItemHover?.(null);
                 }}
+                onClick={() => onItemClick?.({ type: 'person', data: person })}
               >
                 <div className="flex items-center h-full px-3 w-full overflow-hidden">
                   <span className="text-white text-xs font-semibold whitespace-nowrap flex-shrink-0">

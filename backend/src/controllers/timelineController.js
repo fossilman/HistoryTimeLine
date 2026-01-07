@@ -40,6 +40,7 @@ export const getTimelineData = async (req, res) => {
 
     const civilizations = await Civilization.findAll({
       where: civilizationsWhere,
+      order: [['sort', 'ASC']], // 按sort正序排列
       raw: true
     });
 
@@ -91,7 +92,8 @@ export const getTimelineData = async (req, res) => {
         id: c.id,
         name: c.name,
         startYear: c.startYear,
-        endYear: c.endYear
+        endYear: c.endYear,
+        sort: c.sort || null // 包含sort字段
       })),
       polities: polities.map(p => ({
         id: String(p.id), // 转换为字符串以匹配前端类型
@@ -394,6 +396,104 @@ export const getLevel0DynastiesByCivilization = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching Level0 dynasties by civilization:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: '服务器内部错误',
+        details: error.message
+      },
+      timestamp: Date.now()
+    });
+  }
+};
+
+/**
+ * 获取所有文明（全量，不受时间范围限制，用于快速定位栏）
+ */
+export const getAllCivilizations = async (req, res) => {
+  try {
+    const civilizations = await Civilization.findAll({
+      order: [['sort', 'ASC']], // 按sort正序排列
+      raw: true
+    });
+
+    // 格式化响应数据
+    const response = civilizations.map(c => ({
+      id: c.id,
+      name: c.name,
+      startYear: c.startYear,
+      endYear: c.endYear,
+      sort: c.sort || null
+    }));
+
+    res.json({
+      success: true,
+      data: response,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Error fetching all civilizations:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: '服务器内部错误',
+        details: error.message
+      },
+      timestamp: Date.now()
+    });
+  }
+};
+
+/**
+ * 获取所有Level0政权（全量，不受时间范围限制，用于快速定位栏）
+ */
+export const getAllLevel0Dynasties = async (req, res) => {
+  try {
+    // 查询所有Level0朝代（不受时间范围限制）
+    const level0Dynasties = await Dynasty.findAll({
+      where: {
+        [Op.and]: [
+          {
+            status: 1 // 只显示status=1的朝代
+          },
+          {
+            cLevel: 0 // Level0层级
+          },
+          {
+            parentId: null // 没有父朝代
+          }
+        ]
+      },
+      order: [
+        ['c_start', 'ASC'], // 按起始年份排序
+        ['c_end', 'ASC'] // 起始年份相同时按结束年份排序
+      ],
+      raw: true
+    });
+
+    // 格式化响应数据
+    const response = level0Dynasties.map(p => ({
+      id: String(p.id),
+      name: p.nameChn || p.name || '',
+      startYear: p.startYear,
+      endYear: p.endYear,
+      color: '#808080',
+      importance: 'medium',
+      cLevel: p.cLevel || 0,
+      parentId: p.parentId || null,
+      civilizationId: p.civilizationId || 'sinitic',
+      sort: p.sort || 0
+    }));
+
+    res.json({
+      success: true,
+      data: response,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Error fetching all Level0 dynasties:', error);
     res.status(500).json({
       success: false,
       error: {

@@ -7,10 +7,9 @@ import { timelineApi } from '../api/timelineApi';
 import { TimelineCanvas } from './TimelineCanvas';
 import { ScaleBar } from './ScaleBar';
 import { ToolBar } from './ToolBar';
-import { DetailPanel } from './DetailPanel';
 import { pixelToYear } from '../utils/coordinateTransform';
 import { assignTracks } from '../utils/trackAssignment';
-import { Polity, Person } from '../types';
+import { Polity, Person, Civilization } from '../types';
 
 const BASE_YEAR_SPAN = 2000;
 const MIN_SCALE = 2; // 最小缩放：视窗显示 1000 年 (2000 / 2 = 1000)
@@ -35,6 +34,9 @@ export const TimelineContainer: React.FC = () => {
   const [selectedPolity, setSelectedPolity] = useState<Polity | null>(null);
   const [selectedCivilization, setSelectedCivilization] = useState<any | null>(null);
   const [level0Polities, setLevel0Polities] = useState<Polity[]>([]);
+  // 全量数据（用于快速定位栏，不受时间范围限制）
+  const [allCivilizations, setAllCivilizations] = useState<any[]>([]);
+  const [allLevel0Polities, setAllLevel0Polities] = useState<Polity[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const lastXRef = useRef(0);
@@ -44,6 +46,11 @@ export const TimelineContainer: React.FC = () => {
   const [containerSize, setContainerSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const animationFrameRef = useRef<number | null>(null);
   const isAnimatingRef = useRef(false);
+  // 用于节流滚动和拖动更新的本地状态
+  const pendingUpdateRef = useRef<{ centerYear: number; zoomScale: number } | null>(null);
+  const rafUpdateRef = useRef<number | null>(null);
+  // 用于存储 animateZoomToTarget 函数的 ref
+  const animateZoomToTargetRef = useRef<((targetCenterYear: number, targetViewportSpan: number) => void) | null>(null);
 
 
   // 监听窗口大小变化，实现全屏
@@ -147,10 +154,18 @@ export const TimelineContainer: React.FC = () => {
 
   // 防抖获取数据
   const debouncedFetchData = useCallback((delay = 500) => {
+    // 如果正在动画中，不执行数据加载
+    if (isAnimatingRef.current) {
+      return;
+    }
     if (fetchTimeoutRef.current) {
       clearTimeout(fetchTimeoutRef.current);
     }
     fetchTimeoutRef.current = setTimeout(() => {
+      // 再次检查是否仍在动画中
+      if (isAnimatingRef.current) {
+        return;
+      }
       const roundedStartYear = Math.floor(startYear);
       const roundedEndYear = Math.ceil(endYear);
       const roundedViewportSpan = Math.round(viewportSpan);
@@ -163,10 +178,58 @@ export const TimelineContainer: React.FC = () => {
     fetchData(true);
   }, []); // 只在组件挂载时执行一次
 
-  // 监听视窗变化，使用防抖（拖动时不调用）
+  // 加载全量数据（用于快速定位栏，不受时间范围限制）
+  useEffect(() => {
+    const loadAllData = async () => {
+      try {
+        // 并行加载所有文明和所有Level0政权
+        const [civilizations, polities] = await Promise.all([
+          timelineApi.getAllCivilizations(),
+          timelineApi.getAllLevel0Dynasties()
+        ]);
+        setAllCivilizations(civilizations);
+        setAllLevel0Polities(polities);
+        
+        // 初始定位到华夏文明和唐朝
+        const huaxiaCivilization = civilizations.find((civ: Civilization) => civ.name === '华夏文明' || civ.name?.includes('华夏'));
+        if (huaxiaCivilization) {
+          setSelectedCivilization(huaxiaCivilization);
+          // 查找唐朝
+          const tangPolity = polities.find((polity: Polity) => 
+            (polity.name === '唐' || polity.name === '唐朝' || polity.name?.includes('唐')) &&
+            polity.civilizationId === huaxiaCivilization.id
+          );
+          if (tangPolity) {
+            setSelectedPolity(tangPolity);
+            // 延迟执行，确保状态已更新，然后模拟点击唐朝的效果
+            setTimeout(() => {
+              // 计算目标中心年份（朝代的中间年份）
+              const targetCenterYear = (tangPolity.startYear + tangPolity.endYear) / 2;
+              const targetViewportSpan = Math.max(50, (tangPolity.endYear - tangPolity.startYear) * 1.5); // 视窗跨度略大于朝代跨度
+              
+              // 执行平滑缩放动画（使用 ref 避免依赖问题）
+              if (animateZoomToTargetRef.current) {
+                animateZoomToTargetRef.current(targetCenterYear, targetViewportSpan);
+              }
+            }, 500);
+          }
+        }
+      } catch (error) {
+        console.error('加载全量数据失败:', error);
+      }
+    };
+    loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 只在组件挂载时执行一次，animateZoomToTarget 使用 ref 避免依赖问题
+
+  // 监听视窗变化，使用防抖（拖动或动画时不调用）
   useEffect(() => {
     if (isDragging) {
       // 拖动中不调用接口
+      return;
+    }
+    if (isAnimatingRef.current) {
+      // 动画中不调用接口，避免频繁请求导致滞后
       return;
     }
     // 使用防抖，延迟500ms后调用
@@ -178,6 +241,30 @@ export const TimelineContainer: React.FC = () => {
       }
     };
   }, [startYear, endYear, viewportSpan, isDragging, debouncedFetchData]);
+
+  // 使用 requestAnimationFrame 批量更新视窗，确保快速滚动时也能实时更新
+  const scheduleViewportUpdate = useCallback((newCenterYear: number, newZoomScale: number) => {
+    // 始终更新待处理的更新值，这样快速滚动时也能累积所有变化
+    pendingUpdateRef.current = { centerYear: newCenterYear, zoomScale: newZoomScale };
+    
+    // 如果还没有安排更新，则安排一个
+    if (rafUpdateRef.current === null) {
+      const update = () => {
+        if (pendingUpdateRef.current) {
+          const updateValue = pendingUpdateRef.current;
+          pendingUpdateRef.current = null;
+          dispatch(updateViewport(updateValue));
+        }
+        rafUpdateRef.current = null;
+        
+        // 如果还有待处理的更新，继续安排下一个更新（递归）
+        if (pendingUpdateRef.current) {
+          rafUpdateRef.current = requestAnimationFrame(update);
+        }
+      };
+      rafUpdateRef.current = requestAnimationFrame(update);
+    }
+  }, [dispatch]);
 
   // 处理滚轮缩放
   const handleWheel = (e: React.WheelEvent) => {
@@ -227,9 +314,19 @@ export const TimelineContainer: React.FC = () => {
     
     // 计算新的中心年份，保持鼠标位置对应的年份不变
     const mouseRatio = mouseX / containerWidth;
-    const newCenterYear = mouseYear + (0.5 - mouseRatio) * newYearSpan;
+    let newCenterYear = mouseYear + (0.5 - mouseRatio) * newYearSpan;
     
-    dispatch(updateViewport({ centerYear: newCenterYear, zoomScale: newScale }));
+    // 计算边界范围
+    const MIN_YEAR = -1200;
+    const MAX_YEAR = 2100;
+    const minCenterYear = MIN_YEAR + newYearSpan / 2;
+    const maxCenterYear = MAX_YEAR - newYearSpan / 2;
+    
+    // 限制中心年份在边界内
+    newCenterYear = Math.max(minCenterYear, Math.min(maxCenterYear, newCenterYear));
+    
+    // 使用 requestAnimationFrame 节流更新
+    scheduleViewportUpdate(newCenterYear, newScale);
     
     // 显示缩放提示
     if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
@@ -256,10 +353,26 @@ export const TimelineContainer: React.FC = () => {
     if (isDraggingRef.current) {
       const dx = e.clientX - lastXRef.current;
       const yearsDelta = -dx * viewportSpan / containerSize.width;
-      dispatch(updateViewport({ 
-        centerYear: centerYear + yearsDelta, 
-        zoomScale 
-      }));
+      const newCenterYear = centerYear + yearsDelta;
+      
+      // 计算边界范围
+      const MIN_YEAR = -1200;
+      const MAX_YEAR = 2100;
+      const minCenterYear = MIN_YEAR + viewportSpan / 2;
+      const maxCenterYear = MAX_YEAR - viewportSpan / 2;
+      
+      // 限制中心年份在边界内
+      const clampedCenterYear = Math.max(minCenterYear, Math.min(maxCenterYear, newCenterYear));
+      
+      // 如果已经到达边界，不再更新（防止继续拖动）
+      if (clampedCenterYear === centerYear && (newCenterYear < minCenterYear || newCenterYear > maxCenterYear)) {
+        // 已到达边界，不更新，阻止继续拖动
+        return;
+      }
+      
+      // 使用 requestAnimationFrame 节流更新
+      scheduleViewportUpdate(clampedCenterYear, zoomScale);
+      
       lastXRef.current = e.clientX;
     }
   };
@@ -279,55 +392,50 @@ export const TimelineContainer: React.FC = () => {
     setShowNoResults(false);
     setExpandedPolityId(null);
     setChildPolities([]);
-    setSelectedPolity(null);
-    setSelectedCivilization(null);
     setLevel0Polities([]);
+    
+    // 重置后定位到华夏文明和唐朝，并执行平滑缩放动画
+    const huaxiaCivilization = allCivilizations.find((civ: any) => civ.name === '华夏文明' || civ.name?.includes('华夏'));
+    if (huaxiaCivilization) {
+      setSelectedCivilization(huaxiaCivilization);
+      // 查找唐朝
+      const tangPolity = allLevel0Polities.find((polity: Polity) => 
+        (polity.name === '唐' || polity.name === '唐朝' || polity.name?.includes('唐')) &&
+        polity.civilizationId === huaxiaCivilization.id
+      );
+      if (tangPolity) {
+        setSelectedPolity(tangPolity);
+        // 延迟执行，确保状态已更新，然后模拟点击唐朝的效果
+        setTimeout(() => {
+          // 计算目标中心年份（朝代的中间年份）
+          const targetCenterYear = (tangPolity.startYear + tangPolity.endYear) / 2;
+          const targetViewportSpan = Math.max(50, (tangPolity.endYear - tangPolity.startYear) * 1.5); // 视窗跨度略大于朝代跨度
+          
+          // 执行平滑缩放动画（使用 ref 避免依赖问题）
+          if (animateZoomToTargetRef.current) {
+            animateZoomToTargetRef.current(targetCenterYear, targetViewportSpan);
+          }
+        }, 100);
+      } else {
+        setSelectedPolity(null);
+      }
+    } else {
+      setSelectedCivilization(null);
+      setSelectedPolity(null);
+    }
     // 重置后隐藏人物显示
   };
 
   const handleItemHover = (item: { type: string; data: any } | null) => {
+    // 悬停时只更新详情面板，不联动快速定位栏
     setHoveredItem(item);
-    
-    // 当鼠标悬停在文明或朝代上时，更新选中状态并获取Level0朝代
-    if (item?.type === 'polity') {
-      const polity = item.data as Polity;
-      setSelectedPolity(polity);
-      setSelectedCivilization(null);
-      
-      // 获取该朝代所属文明的所有Level0朝代
-      if (polity.civilizationId) {
-        timelineApi.getLevel0DynastiesByCivilization(polity.civilizationId)
-          .then(data => {
-            setLevel0Polities(data);
-          })
-          .catch(error => {
-            console.error('获取Level0朝代失败:', error);
-            setLevel0Polities([]);
-          });
-      }
-    } else if (item?.type === 'civilization') {
-      const civ = item.data;
-      setSelectedCivilization(civ);
-      setSelectedPolity(null);
-      
-      // 获取该文明的所有Level0朝代
-      if (civ.id) {
-        timelineApi.getLevel0DynastiesByCivilization(civ.id)
-          .then(data => {
-            setLevel0Polities(data);
-          })
-          .catch(error => {
-            console.error('获取Level0朝代失败:', error);
-            setLevel0Polities([]);
-          });
-      }
-    } else {
-      // 鼠标移开时不清除选中状态，保持显示
-      // setSelectedPolity(null);
-      // setSelectedCivilization(null);
-      // setLevel0Polities([]);
-    }
   };
+
+  // 处理文明或政权的点击事件（点击时不联动快速定位栏）
+  const handleItemClick = useCallback((item: { type: string; data: any } | null) => {
+    // 点击时只更新详情面板，不更新快速定位栏
+    setHoveredItem(item);
+  }, []);
 
   // 平滑缩放动画函数 - 模拟鼠标滚轮效果
   const animateZoomToTarget = useCallback((targetCenterYear: number, targetViewportSpan: number) => {
@@ -340,9 +448,20 @@ export const TimelineContainer: React.FC = () => {
     // 计算目标缩放比例
     const targetScale = BASE_YEAR_SPAN / targetViewportSpan;
     
+    // 计算边界范围
+    const MIN_YEAR = -1200;
+    const MAX_YEAR = 2100;
+    const minCenterYear = MIN_YEAR + targetViewportSpan / 2;
+    const maxCenterYear = MAX_YEAR - targetViewportSpan / 2;
+    
+    // 限制目标中心年份在边界内
+    const clampedTargetCenterYear = Math.max(minCenterYear, Math.min(maxCenterYear, targetCenterYear));
+    
     // 动画参数
-    const duration = 1000; // 1秒动画
+    const duration = 800; // 缩短动画时长到800ms
     const startTime = Date.now();
+    let lastUpdateTime = startTime;
+    const minUpdateInterval = 16; // 约60fps，每16ms更新一次（节流）
     
     const animate = () => {
       const elapsed = Date.now() - startTime;
@@ -352,22 +471,46 @@ export const TimelineContainer: React.FC = () => {
       const easeOut = 1 - Math.pow(1 - progress, 3);
       
       // 插值计算当前值
-      const currentCenterYear = startCenterYear + (targetCenterYear - startCenterYear) * easeOut;
+      let currentCenterYear = startCenterYear + (clampedTargetCenterYear - startCenterYear) * easeOut;
       const currentScale = startScale + (targetScale - startScale) * easeOut;
       
-      // 更新视窗
-      dispatch(updateViewport({ centerYear: currentCenterYear, zoomScale: currentScale }));
+      // 计算当前视窗跨度的边界
+      const currentViewportSpan = BASE_YEAR_SPAN / currentScale;
+      const currentMinCenterYear = MIN_YEAR + currentViewportSpan / 2;
+      const currentMaxCenterYear = MAX_YEAR - currentViewportSpan / 2;
+      
+      // 限制当前中心年份在边界内
+      currentCenterYear = Math.max(currentMinCenterYear, Math.min(currentMaxCenterYear, currentCenterYear));
+      
+      // 节流更新：只在达到最小更新间隔时才更新状态
+      const now = Date.now();
+      if (now - lastUpdateTime >= minUpdateInterval || progress >= 1) {
+        // 使用批量更新机制，减少渲染次数
+        scheduleViewportUpdate(currentCenterYear, currentScale);
+        lastUpdateTime = now;
+      }
       
       if (progress < 1) {
         animationFrameRef.current = requestAnimationFrame(animate);
       } else {
+        // 确保最后一次更新
+        scheduleViewportUpdate(currentCenterYear, currentScale);
         isAnimatingRef.current = false;
         animationFrameRef.current = null;
+        // 动画完成后，延迟加载数据，确保动画完全结束
+        setTimeout(() => {
+          debouncedFetchData(300);
+        }, 100);
       }
     };
     
     animationFrameRef.current = requestAnimationFrame(animate);
-  }, [centerYear, viewportSpan, zoomScale, dispatch]);
+  }, [centerYear, zoomScale, scheduleViewportUpdate, debouncedFetchData]);
+  
+  // 将 animateZoomToTarget 存储到 ref 中，供初始化使用
+  useEffect(() => {
+    animateZoomToTargetRef.current = animateZoomToTarget;
+  }, [animateZoomToTarget]);
 
   // 处理朝代点击（展开/收起）
   const handlePolityClick = useCallback(async (polity: Polity) => {
@@ -390,11 +533,18 @@ export const TimelineContainer: React.FC = () => {
     }
   }, [expandedPolityId]);
 
-  // 处理快速定位到朝代
+  // 处理快速定位到文明（从快速定位栏点击）
+  const handleCivilizationClick = useCallback(async (civilization: any) => {
+    setSelectedCivilization(civilization);
+    // 点击文明时，不改变主页面视窗，也不清除选中的政权
+    // 主页面不要随之变动
+  }, []);
+
+  // 处理快速定位到朝代（从快速定位栏点击）
   const handleQuickLocate = useCallback((polity: Polity) => {
     setSelectedPolity(polity);
-    setSelectedCivilization(null);
-    
+    // 点击政权时，不改变主页面视窗，也不清除选中的文明
+    // 当点击快速定位栏中的政权元素后，二层不要消失
     // 计算目标中心年份（朝代的中间年份）
     const centerYear = (polity.startYear + polity.endYear) / 2;
     const targetViewportSpan = Math.max(50, (polity.endYear - polity.startYear) * 1.5); // 视窗跨度略大于朝代跨度
@@ -469,11 +619,14 @@ export const TimelineContainer: React.FC = () => {
     animateZoomToTarget(targetCenterYear, targetViewportSpan);
   }, [animateZoomToTarget]);
 
-  // 清理动画
+  // 清理动画和 RAF
   useEffect(() => {
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (rafUpdateRef.current) {
+        cancelAnimationFrame(rafUpdateRef.current);
       }
     };
   }, []);
@@ -494,25 +647,19 @@ export const TimelineContainer: React.FC = () => {
         })}
         polities={polities}
         showNoResults={showNoResults}
-      />
-      
-      <ScaleBar 
-        startYear={startYear}
-        endYear={endYear}
-        viewportSpan={viewportSpan}
-        polityTrackCount={polityTracks.trackCount}
-        personTrackCount={personTracks.trackCount}
+        civilizations={allCivilizations} // 使用全量文明数据，不受时间范围限制
         selectedCivilization={selectedCivilization}
         selectedPolity={selectedPolity}
-        level0Polities={level0Polities}
+        allLevel0Polities={allLevel0Polities} // 使用全量Level0政权数据，不受时间范围限制
+        onCivilizationClick={handleCivilizationClick}
         onPolityClick={handleQuickLocate}
       />
 
-      {/* 时间轴主区域 - 全屏展示 */}
+      {/* 时间轴主区域 - 全屏展示，无滚动条 */}
       <div className="flex-1 overflow-hidden relative">
         <div 
           ref={containerRef}
-          className="absolute inset-0"
+          className="relative w-full h-full"
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -522,20 +669,33 @@ export const TimelineContainer: React.FC = () => {
         >
           <TimelineCanvas
             width={containerSize.width}
-            height={containerSize.height - 200}
+            height={containerSize.height - 136}
             startYear={startYear}
             endYear={endYear}
             civilizations={civilizations}
             polities={visiblePolities}
             persons={visiblePersons}
             onItemHover={handleItemHover}
+            onItemClick={handleItemClick}
             matchedPerson={matchedPerson}
             expandedPolityId={expandedPolityId}
             childPolities={childPolities}
             onPolityClick={handlePolityClick}
+            containerHeight={containerSize.height}
           />
 
         </div>
+      </div>
+
+      {/* 底部栏 - 仅显示比例尺和范围，无操作功能 */}
+      <div className="bg-white border-t border-slate-200 shadow-sm">
+        <ScaleBar 
+          startYear={startYear}
+          endYear={endYear}
+          viewportSpan={viewportSpan}
+          displayOnly={true}
+          detailItem={hoveredItem}
+        />
       </div>
 
       {/* 缩放提示 */}
@@ -544,8 +704,6 @@ export const TimelineContainer: React.FC = () => {
           {zoomHint}
         </div>
       )}
-
-      <DetailPanel item={hoveredItem} />
       
     </div>
   );

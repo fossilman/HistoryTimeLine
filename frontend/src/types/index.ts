@@ -3,6 +3,7 @@ export interface Civilization {
   name: string;
   startYear: number;
   endYear: number | null;
+  sort?: number; // 排序字段
 }
 
 export interface Polity {
